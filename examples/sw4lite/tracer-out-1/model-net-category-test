@@ -1,0 +1,16 @@
+lp:8	send_count:125	send_bytes:5376	send_time:451.764706	recv_count:129	recv_bytes:5392	recv_time:499883.028321	max_event_size:440
+lp:9	send_count:182	send_bytes:6152	send_time:516.974790	recv_count:184	recv_bytes:6160	recv_time:489779.378222	max_event_size:440
+lp:10	send_count:182	send_bytes:6152	send_time:516.974790	recv_count:184	recv_bytes:6160	recv_time:734301.290139	max_event_size:440
+lp:11	send_count:136	send_bytes:5416	send_time:455.126050	recv_count:138	recv_bytes:5424	recv_time:484568.705427	max_event_size:440
+lp:23	send_count:182	send_bytes:6152	send_time:516.974790	recv_count:184	recv_bytes:6160	recv_time:781898.243553	max_event_size:440
+lp:24	send_count:228	send_bytes:6888	send_time:578.823529	recv_count:230	recv_bytes:6896	recv_time:743111.043123	max_event_size:440
+lp:25	send_count:228	send_bytes:6888	send_time:578.823529	recv_count:230	recv_bytes:6896	recv_time:938341.596045	max_event_size:440
+lp:26	send_count:173	send_bytes:6120	send_time:514.285714	recv_count:173	recv_bytes:6120	recv_time:693294.278292	max_event_size:440
+lp:38	send_count:164	send_bytes:6088	send_time:511.596639	recv_count:162	recv_bytes:6080	recv_time:478687.799282	max_event_size:440
+lp:39	send_count:210	send_bytes:6824	send_time:573.445378	recv_count:208	recv_bytes:6816	recv_time:460127.638084	max_event_size:440
+lp:40	send_count:210	send_bytes:6824	send_time:573.445378	recv_count:208	recv_bytes:6816	recv_time:683115.801627	max_event_size:440
+lp:41	send_count:164	send_bytes:6088	send_time:511.596639	recv_count:162	recv_bytes:6080	recv_time:455318.827574	max_event_size:440
+lp:53	send_count:118	send_bytes:5352	send_time:449.747899	recv_count:116	recv_bytes:5344	recv_time:467289.404953	max_event_size:440
+lp:54	send_count:164	send_bytes:6088	send_time:511.596639	recv_count:162	recv_bytes:6080	recv_time:445650.828731	max_event_size:440
+lp:55	send_count:164	send_bytes:6088	send_time:511.596639	recv_count:162	recv_bytes:6080	recv_time:669465.705272	max_event_size:440
+lp:56	send_count:118	send_bytes:5352	send_time:449.747899	recv_count:116	recv_bytes:5344	recv_time:441451.241026	max_event_size:440

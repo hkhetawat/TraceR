@@ -1,0 +1,129 @@
+Job[0]PE[0]: FINALIZE in 3.083597 seconds.
+PE0: not done count:17792242 out of 17816403 for iter 0
+0 psize 3 pRsize 2
+0 rsize 2 rRsize 4
+PE1: not done count:16888044 out of 16889116 for iter 0
+1 psize 4 pRsize 4
+1 rsize 4 rRsize 6
+PE2: not done count:10067426 out of 10067860 for iter 0
+2 psize 7 pRsize 3
+2 rsize 3 rRsize 8
+PE3: not done count:10769398 out of 10770014 for iter 0
+3 psize 6 pRsize 4
+3 rsize 5 rRsize 6
+PE4: not done count:767019 out of 767298 for iter 0
+4 psize 8 pRsize 5
+4 rsize 4 rRsize 8
+PE5: not done count:14007338 out of 14007790 for iter 0
+5 psize 2 pRsize 4
+5 rsize 5 rRsize 4
+PE6: not done count:13261561 out of 13262083 for iter 0
+6 psize 5 pRsize 3
+6 rsize 2 rRsize 6
+PE7: not done count:132592 out of 132832 for iter 0
+7 psize 6 pRsize 2
+7 rsize 3 rRsize 7
+PE8: not done count:16363305 out of 16364084 for iter 0
+8 psize 5 pRsize 3
+8 rsize 7 rRsize 4
+PE9: not done count:19579024 out of 19810679 for iter 0
+9 psize 5 pRsize 1
+9 rsize 2 rRsize 4
+PE10: not done count:12228835 out of 12229373 for iter 0
+10 psize 5 pRsize 4
+10 rsize 4 rRsize 6
+PE11: not done count:17776069 out of 17805663 for iter 0
+11 psize 5 pRsize 1
+11 rsize 3 rRsize 4
+PE12: not done count:9715648 out of 9716146 for iter 0
+12 psize 4 pRsize 4
+12 rsize 5 rRsize 6
+PE13: not done count:17729737 out of 17823201 for iter 0
+13 psize 5 pRsize 3
+13 rsize 5 rRsize 5
+PE14: not done count:18164351 out of 18285023 for iter 0
+14 psize 6 pRsize 3
+14 rsize 12 rRsize 5
+PE15: not done count:13881267 out of 13883132 for iter 0
+15 psize 8 pRsize 6
+15 rsize 13 rRsize 12
+
+	: Running Time = 0.7172 seconds
+
+TW Library Statistics:
+	Total Events Processed                                 1082868
+	Events Aborted (part of RBs)                                 0
+	Events Rolled Back                                           0
+	Event Ties Detected in PE Queues                             0
+	Efficiency                                              100.00 %
+	Total Remote (shared mem) Events Processed                   0
+	Percent Remote Events                                     0.00 %
+	Total Remote (network) Events Processed                      0
+	Percent Remote Events                                     0.00 %
+
+	Total Roll Backs                                             0
+	Primary Roll Backs                                           0
+	Secondary Roll Backs                                         0
+	Fossil Collect Attempts                                      0
+	Total GVT Computations                                       0
+
+	Net Events Processed                                   1082868
+	Event Rate (events/sec)                              1509802.4
+	Total Events Scheduled Past End Time                         0
+
+TW Memory Statistics:
+	Events Allocated                                        161457
+	Memory Allocated                                        110308
+	Memory Wasted                                              455
+
+TW Data Structure sizes in bytes (sizeof):
+	PE struct                                                  624
+	KP struct                                                  144
+	LP struct                                                  136
+	LP Model struct                                           8376
+	LP RNGs                                                     80
+	Total LP                                                  8592
+	Event struct                                               152
+	Event struct with Model                                    696
+
+TW Clock Cycle Statistics (MAX values in secs at 1.0000 GHz):
+	Initialization                                        572.0535
+	Priority Queue (enq/deq)                                0.1769
+	AVL Tree (insert/delete)                                0.0000
+	LZ4 (de)compression                                     0.0000
+	Buddy system                                            0.0000
+	Event Processing                                        0.0000
+	Event Cancel                                            0.0000
+	Event Abort                                             0.0000
+
+	GVT                                                     0.0000
+	Fossil Collect                                          0.0000
+	Primary Rollbacks                                       0.0000
+	Network Read                                            0.0000
+	Other Network                                           0.0000
+	Instrumentation (computation)                           0.0000
+	Instrumentation (write)                                 0.0000
+	Total Time (Note: Using Running Time above for Speedup)      1.4867
+
+TW GVT Statistics: MPI AllReduce
+	GVT Interval                                                16
+	GVT Real Time Interval (cycles)                    0
+	GVT Real Time Interval (sec)                        0.00000000
+	Batch Size                                                  16
+
+	Forced GVT                                                   0
+	Total GVT Computations                                       0
+	Total All Reduce Calls                                       0
+	Average Reduction / GVT                                   -nan
+LP-IO: writing output to tracer-out-192559-1564604087/
+LP-IO: data files:
+   tracer-out-192559-1564604087/fattree-switch-traffic
+   tracer-out-192559-1564604087/fattree-switch-stats
+   tracer-out-192559-1564604087/fattree-msg-stats
+   tracer-out-192559-1564604087/model-net-category-all
+   tracer-out-192559-1564604087/model-net-category-p2p
+   tracer-out-192559-1564604087/model-net-category-test
+Job 0 Time 0.000000 s
+ Average number of hops traversed 2.516221 average chunk latency 23.716095 us maximum chunk latency 252.694719 us avg message size 212832.265625 bytes finished messages 1588 finished chunks 42507 
+ Total packets generated 42507 finished 42507 
+ Average number of hops traversed 2.516221 average chunk latency 23.716095 us maximum chunk latency 252.694719 us avg message size 212832.265625 bytes finished messages 1588 

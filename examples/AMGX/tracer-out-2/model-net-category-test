@@ -1,0 +1,4 @@
+lp:16	send_count:500	send_bytes:3352	send_time:281.680672	recv_count:500	recv_bytes:3664	recv_time:170046.394473	max_event_size:440
+lp:17	send_count:629	send_bytes:5448	send_time:457.815126	recv_count:629	recv_bytes:5596	recv_time:101915.800979	max_event_size:440
+lp:18	send_count:409	send_bytes:3376	send_time:283.697479	recv_count:409	recv_bytes:3776	recv_time:103345.095683	max_event_size:440
+lp:19	send_count:348	send_bytes:3604	send_time:302.857143	recv_count:348	recv_bytes:2744	recv_time:133662.732474	max_event_size:440

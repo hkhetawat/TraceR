@@ -1,0 +1,81 @@
+Job[0]PE[0]: FINALIZE in 1.756683 seconds.
+
+	: Running Time = 0.0443 seconds
+
+TW Library Statistics:
+	Total Events Processed                                   46991
+	Events Aborted (part of RBs)                                 0
+	Events Rolled Back                                           0
+	Event Ties Detected in PE Queues                             0
+	Efficiency                                              100.00 %
+	Total Remote (shared mem) Events Processed                   0
+	Percent Remote Events                                     0.00 %
+	Total Remote (network) Events Processed                      0
+	Percent Remote Events                                     0.00 %
+
+	Total Roll Backs                                             0
+	Primary Roll Backs                                           0
+	Secondary Roll Backs                                         0
+	Fossil Collect Attempts                                      0
+	Total GVT Computations                                       0
+
+	Net Events Processed                                     46991
+	Event Rate (events/sec)                              1060481.6
+	Total Events Scheduled Past End Time                         0
+
+TW Memory Statistics:
+	Events Allocated                                        194225
+	Memory Allocated                                        132644
+	Memory Wasted                                              391
+
+TW Data Structure sizes in bytes (sizeof):
+	PE struct                                                  624
+	KP struct                                                  144
+	LP struct                                                  136
+	LP Model struct                                           8376
+	LP RNGs                                                     80
+	Total LP                                                  8592
+	Event struct                                               152
+	Event struct with Model                                    696
+
+TW Clock Cycle Statistics (MAX values in secs at 1.0000 GHz):
+	Initialization                                          0.6458
+	Priority Queue (enq/deq)                                0.0115
+	AVL Tree (insert/delete)                                0.0000
+	LZ4 (de)compression                                     0.0000
+	Buddy system                                            0.0000
+	Event Processing                                        0.0000
+	Event Cancel                                            0.0000
+	Event Abort                                             0.0000
+
+	GVT                                                     0.0000
+	Fossil Collect                                          0.0000
+	Primary Rollbacks                                       0.0000
+	Network Read                                            0.0000
+	Other Network                                           0.0000
+	Instrumentation (computation)                           0.0000
+	Instrumentation (write)                                 0.0000
+	Total Time (Note: Using Running Time above for Speedup)      0.0928
+
+TW GVT Statistics: MPI AllReduce
+	GVT Interval                                                16
+	GVT Real Time Interval (cycles)                    0
+	GVT Real Time Interval (sec)                        0.00000000
+	Batch Size                                                  16
+
+	Forced GVT                                                   0
+	Total GVT Computations                                       0
+	Total All Reduce Calls                                       0
+	Average Reduction / GVT                                   -nan
+LP-IO: writing output to tracer-out-653-1564604851/
+LP-IO: data files:
+   tracer-out-653-1564604851/fattree-switch-traffic
+   tracer-out-653-1564604851/fattree-switch-stats
+   tracer-out-653-1564604851/fattree-msg-stats
+   tracer-out-653-1564604851/model-net-category-all
+   tracer-out-653-1564604851/model-net-category-coll
+   tracer-out-653-1564604851/model-net-category-test
+Job 0 Time 1.758509 s
+ Average number of hops traversed 1.000000 average chunk latency 0.264763 us maximum chunk latency 2.716287 us avg message size 8.357808 bytes finished messages 1934 finished chunks 1934 
+ Total packets generated 1934 finished 1934 
+ Average number of hops traversed 1.000000 average chunk latency 0.264763 us maximum chunk latency 2.716287 us avg message size 8.357808 bytes finished messages 1934

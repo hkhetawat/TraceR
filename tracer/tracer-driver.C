@@ -76,8 +76,21 @@ tw_lptype proc_lp = {
      sizeof(proc_state),
 };
 
+tw_lptype proc_lp_gpu = {
+     (init_f) proc_init_gpu,
+     (pre_run_f) NULL,
+     (event_f) proc_event_gpu,
+     (revent_f) proc_rev_event_gpu,
+     (commit_f) proc_commit_event_gpu,
+     (final_f)  proc_finalize_gpu, 
+     (map_f) codes_mapping,
+     sizeof(proc_state),
+};
+
 const tw_lptype* proc_get_lp_type();
+const tw_lptype* proc_get_lp_type_gpu();
 static void proc_add_lp_type();
+static void proc_add_lp_type_gpu();
 
 static char lp_io_dir[256] = {'\0'};
 const tw_optdef app_opt [] =
@@ -140,6 +153,9 @@ int main(int argc, char **argv)
 
     /* register the server LP */
     proc_add_lp_type();
+
+    /* register the GPU LP */
+    proc_add_lp_type_gpu();
 
     /* specify LP mapping to ROSS */
     codes_mapping_setup();
@@ -415,9 +431,19 @@ const tw_lptype* proc_get_lp_type()
     return(&proc_lp);
 }
 
+const tw_lptype* proc_get_lp_type_gpu()
+{
+    return(&proc_lp_gpu);
+}
+
 static void proc_add_lp_type()
 {
     lp_type_register("server", proc_get_lp_type());
+}
+
+static void proc_add_lp_type_gpu()
+{
+    lp_type_register("gpu", proc_get_lp_type_gpu());
 }
 
 /* function used by ROSS to initialize server LPs/PEs/cores -- this is the
@@ -436,6 +462,7 @@ void proc_init(
     ns->sim_start = clock();
     ns->my_pe_num = lpid_to_pe(lp->gid);
     ns->my_job = lpid_to_job(lp->gid);
+    ns->pe_type = CPU;
 
     if(ns->my_pe_num == -1) {
         return;
@@ -444,6 +471,9 @@ void proc_init(
     /* allocate memory for storing information related to a core */
     ns->my_pe = new PE();
     tw_stime startTime=0;
+
+    printf("GID of CPU is %d and PE id is : %d.\n", lp->gid, ns->my_pe_num);
+
     // Each server reads it's full trace
 #if TRACER_BIGSIM_TRACES
     ns->trace_reader = newTraceReader(jobs[ns->my_job].traceDir);
@@ -719,6 +749,316 @@ void proc_finalize(
     return;
 }
 
+/* function used by ROSS to initialize server LPs/PEs/cores -- this is the
+ * first function invoked in tw_run() */
+void proc_init_gpu(
+    proc_state * ns,
+    tw_lp * lp) {
+  
+ 
+    //return;
+
+    tw_event *e;
+    proc_msg *m;
+    tw_stime kickoff_time;
+    
+    memset(ns, 0, sizeof(*ns));
+
+    if(dump_topo_only) return;
+
+    ns->sim_start = clock();
+    ns->my_pe_num = lpid_to_pe(lp->gid);
+    ns->my_job = lpid_to_job(lp->gid);
+    ns->pe_type = GPU;
+
+    if(ns->my_pe_num == -1) {
+        return;
+    }
+
+    /* allocate memory for storing information related to a core */
+    ns->my_pe = new PE();
+    tw_stime startTime=0;
+
+    printf("GID of GPU is %d and PE id is : %d.\n", lp->gid, ns->my_pe_num);
+    
+    // Each server reads it's full trace
+#if TRACER_BIGSIM_TRACES
+    ns->trace_reader = newTraceReader(jobs[ns->my_job].traceDir);
+    int tot=0, totn=0, emPes=0, nwth=0;
+    TraceReader_loadTraceSummary(ns->trace_reader);
+    TraceReader_setOffsets(ns->trace_reader, &(jobs[ns->my_job].offsets));
+
+    TraceReader_readTrace(ns->trace_reader, &tot, &totn, &emPes, &nwth,
+                         ns->my_pe, ns->my_pe_num,  ns->my_job, &startTime);
+#else 
+    //TraceReader_readOTF2Trace(ns->my_pe, ns->my_pe_num, ns->my_job, &startTime);
+#endif
+
+    /* skew each kickoff event slightly to help avoid event ties later on */
+    kickoff_time = startTime + g_tw_lookahead + tw_rand_unif(lp->rng);
+    ns->end_ts = 0;
+    /* maintain message sequencing for MPI */
+    ns->my_pe->sendSeq = new int64_t[jobs[ns->my_job].numRanks];
+    ns->my_pe->recvSeq = new int64_t[jobs[ns->my_job].numRanks];
+    for(int i = 0; i < jobs[ns->my_job].numRanks; i++) {
+      ns->my_pe->sendSeq[i] = ns->my_pe->recvSeq[i] = 0;
+    }
+
+    e = tw_event_new(lp->gid, kickoff_time, lp);
+    m =  (proc_msg*)tw_event_data(e);
+    m->proc_event_type = KICKOFF;
+    /* enqueue KICKOFF event with ROSS */
+    //tw_event_send(e);
+
+    return;
+}
+
+/* handle different kinds of event for this core: events are only triggered
+ * after all cores have been initialized (proc_init) */
+void proc_event_gpu(
+    proc_state * ns,
+    tw_bf * b,
+    proc_msg * m,
+    tw_lp * lp)
+{
+  fflush(stdout);
+  switch (m->proc_event_type)
+  {
+    case KICKOFF:
+      handle_kickoff_event(ns, b, m, lp);
+      break;
+    case LOCAL:
+      handle_local_event(ns, b, m, lp); 
+      break;
+    case RECV_MSG:
+      handle_recv_event(ns, b, m, lp);
+      break;
+    case BCAST:
+      handle_bcast_event(ns, b, m, lp);
+      break;
+    case EXEC_COMPLETE:
+      handle_exec_event(ns, b, m, lp);
+      break;
+    case SEND_COMP:
+      handle_send_comp_event(ns, b, m, lp);
+      break;
+    case RECV_POST:
+      handle_recv_post_event(ns, b, m, lp);
+      break;
+    case COLL_BCAST:
+      perform_bcast(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_REDUCTION:
+      perform_reduction(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_A2A:
+      perform_a2a(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_A2A_SEND_DONE:
+      handle_a2a_send_comp_event(ns, b, m, lp);
+      break;
+    case COLL_ALLGATHER:
+      perform_allgather(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_ALLGATHER_SEND_DONE:
+      handle_allgather_send_comp_event(ns, b, m, lp);
+      break;
+    case COLL_BRUCK:
+      perform_bruck(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_BRUCK_SEND_DONE:
+      handle_bruck_send_comp_event(ns, b, m, lp);
+      break;
+    case COLL_A2A_BLOCKED:
+      perform_a2a_blocked(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_A2A_BLOCKED_SEND_DONE:
+      handle_a2a_blocked_send_comp_event(ns, b, m, lp);
+      break;
+    case COLL_SCATTER_SMALL:
+      perform_scatter_small(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_SCATTER:
+      perform_scatter(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_SCATTER_SEND_DONE:
+      handle_scatter_send_comp_event(ns, b, m, lp);
+      break;
+    case RECV_COLL_POST:
+      handle_coll_recv_post_event(ns, b, m, lp);
+      break;
+    case COLL_COMPLETE:
+      handle_coll_complete_event(ns, b, m, lp);
+      break;
+    default:
+      printf("\n Invalid message type %d event %lld ", 
+          m->proc_event_type, m);
+      assert(0);
+      break;
+  }
+}
+
+/* reverse handlers for different kinds of event for this core */
+void proc_rev_event_gpu(
+    proc_state * ns,
+    tw_bf * b,
+    proc_msg * m,
+    tw_lp * lp)
+{
+  switch (m->proc_event_type)
+  {
+    case KICKOFF:
+      handle_kickoff_rev_event(ns, b, m, lp);
+      break;
+    case LOCAL:
+      handle_local_rev_event(ns, b, m, lp);    
+      break;
+    case RECV_MSG:
+      handle_recv_rev_event(ns, b, m, lp);
+      break;
+    case BCAST:
+      handle_bcast_rev_event(ns, b, m, lp);
+      break;
+    case EXEC_COMPLETE:
+      handle_exec_rev_event(ns, b, m, lp);
+      break;
+    case SEND_COMP:
+      handle_send_comp_rev_event(ns, b, m, lp);
+      break;
+    case RECV_POST:
+      handle_recv_post_rev_event(ns, b, m, lp);
+      break;
+    case COLL_BCAST:
+      perform_bcast_rev(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_REDUCTION:
+      perform_reduction_rev(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_A2A:
+      perform_a2a_rev(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_A2A_SEND_DONE:
+      handle_a2a_send_comp_rev_event(ns, b, m, lp);
+      break;
+    case COLL_ALLGATHER:
+      perform_allgather_rev(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_ALLGATHER_SEND_DONE:
+      handle_allgather_send_comp_rev_event(ns, b, m, lp);
+      break;
+    case COLL_BRUCK:
+      perform_bruck_rev(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_BRUCK_SEND_DONE:
+      handle_bruck_send_comp_rev_event(ns, b, m, lp);
+      break;
+    case COLL_A2A_BLOCKED:
+      perform_a2a_blocked_rev(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_A2A_BLOCKED_SEND_DONE:
+      handle_a2a_blocked_send_comp_rev_event(ns, b, m, lp);
+      break;
+    case COLL_SCATTER_SMALL:
+      perform_scatter_small_rev(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_SCATTER:
+      perform_scatter_rev(ns, -1, lp, m, b, 1);
+      break;
+    case COLL_SCATTER_SEND_DONE:
+      handle_scatter_send_comp_rev_event(ns, b, m, lp);
+      break;
+    case RECV_COLL_POST:
+      handle_coll_recv_post_rev_event(ns, b, m, lp);
+      break;
+    case COLL_COMPLETE:
+      handle_coll_complete_rev_event(ns, b, m, lp);
+      break;
+    default:
+      assert(0);
+      break;
+  }
+  return;
+}
+
+/* commit event handler: this is called when an event is committed; won't ever
+ * be rolled back */
+void proc_commit_event_gpu(
+    proc_state * ns,
+    tw_bf * b,
+    proc_msg * m,
+    tw_lp * lp) {
+  switch (m->proc_event_type)
+  {
+    case EXEC_COMPLETE:
+      int iter = m->iteration;
+      if(b->c1) {
+        delete [] ns->my_pe->taskStatus[iter];
+        delete [] ns->my_pe->taskExecuted[iter];
+        delete [] ns->my_pe->msgStatus[iter];
+      }
+      break;
+  }
+}
+
+/* ROSS calls this once all events have been processed for all cores and
+ * quiescence has been detected */
+void proc_finalize_gpu(
+    proc_state * ns,
+    tw_lp * lp)
+{
+
+    return;
+
+    if(ns->my_pe_num == -1) return;
+    if(dump_topo_only) return;
+
+    tw_stime jobTime = ns->end_ts - ns->start_ts;
+    tw_stime finalTime = tw_now(lp);
+
+    if(lpid_to_pe(lp->gid) == 0)
+        printf("Job[%d]PE[%d]: FINALIZE in %f seconds.\n", ns->my_job,
+          ns->my_pe_num, ns_to_s(tw_now(lp)-ns->start_ts));
+
+#if TRACER_OTF_TRACES
+    PE_printStat(ns->my_pe, -1);
+#endif
+
+    if(ns->my_pe->pendingMsgs.size() != 0 ||
+       ns->my_pe->pendingRMsgs.size() != 0) {
+      printf("%d psize %d pRsize %d\n", ns->my_pe_num, 
+        ns->my_pe->pendingMsgs.size(), ns->my_pe->pendingRMsgs.size());
+    }
+
+    if(ns->my_pe->pendingReqs.size() != 0 ||
+      ns->my_pe->pendingRReqs.size() != 0) {
+      printf("%d rsize %d rRsize %d\n", ns->my_pe_num, 
+        ns->my_pe->pendingReqs.size(), ns->my_pe->pendingRReqs.size());
+    }
+
+    if(ns->my_pe->pendingRCollMsgs.size() != 0) {
+      printf("%d rcollsize %d \n", ns->my_pe_num, 
+        ns->my_pe->pendingRCollMsgs.size());
+    }
+
+    int count = 0;
+    std::map<int64_t, std::map<int64_t, std::map<int, int> > >::iterator it =
+      ns->my_pe->pendingCollMsgs.begin();
+    while(it != ns->my_pe->pendingCollMsgs.end()) {
+      count += it->second.size();
+      it++;
+    }
+
+    if(count != 0) {
+      printf("%d collsize %d \n", ns->my_pe_num, count);
+    }
+
+    if(jobTime > jobTimes[ns->my_job]) {
+        jobTimes[ns->my_job] = jobTime;
+    }
+
+    return;
+}
+
 /* convert ns to seconds */
 tw_stime ns_to_s(tw_stime ns)
 {
@@ -751,7 +1091,10 @@ void handle_kickoff_event(
     }
   
     //Safety check if the pe_to_lpid converter is correct
-    assert(pe_to_lpid(my_pe_num, my_job) == lp->gid);
+    //if(ns->pe_type == CPU)
+        assert(pe_to_lpid(my_pe_num, my_job) == lp->gid);
+    //if(ns->pe_type == GPU)
+      //  assert(pe_to_lpid_gpu(my_pe_num, my_job) == lp->gid);
     assert(PE_is_busy(ns->my_pe) == false);
     TaskPair pair;
     pair.iter = 0; pair.taskid = PE_getFirstTask(ns->my_pe);
@@ -919,12 +1262,18 @@ void handle_exec_rev_event(
     }
 }
 
-
 //Utility function to convert pe number to tw_lpid number
 //Assuming the servers come first in lp registration in terms of global id
 int pe_to_lpid(int pe, int job){
     int server_num = jobs[job].rankMap[pe];
     return codes_mapping_get_lpid_from_relative(server_num, NULL, "server", NULL, 0);
+}
+
+//Utility function to convert pe number to tw_lpid number
+//Assuming the servers come first in lp registration in terms of global id
+int pe_to_lpid_gpu(int pe, int job){
+    int server_num = jobs[job].rankMap[pe];
+    return codes_mapping_get_lpid_from_relative(server_num, NULL, "gpu", NULL, 0);
 }
 
 //Utility function to convert tw_lpid to simulated pe number

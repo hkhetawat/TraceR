@@ -1,0 +1,8 @@
+lp:16	send_count:192	send_bytes:510912	send_time:42933.781513	recv_count:190	recv_bytes:545248	recv_time:306211.172115	max_event_size:440
+lp:17	send_count:103	send_bytes:255552	send_time:21474.957983	recv_count:121	recv_bytes:207200	recv_time:192494.689717	max_event_size:440
+lp:18	send_count:85	send_bytes:24672	send_time:2073.277311	recv_count:171	recv_bytes:492696	recv_time:351458.701670	max_event_size:440
+lp:19	send_count:86	send_bytes:34584	send_time:2906.218487	recv_count:138	recv_bytes:370776	recv_time:203775.059549	max_event_size:440
+lp:39	send_count:109	send_bytes:327744	send_time:27541.512605	recv_count:199	recv_bytes:766728	recv_time:415108.904037	max_event_size:440
+lp:40	send_count:398	send_bytes:1511768	send_time:127039.327731	recv_count:125	recv_bytes:269736	recv_time:127727.215113	max_event_size:440
+lp:41	send_count:322	send_bytes:1148544	send_time:96516.302521	recv_count:164	recv_bytes:490168	recv_time:383963.769995	max_event_size:440
+lp:42	send_count:159	send_bytes:483120	send_time:40598.319328	recv_count:346	recv_bytes:1154344	recv_time:641464.940382	max_event_size:440

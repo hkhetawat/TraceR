@@ -40,12 +40,19 @@ typedef struct CoreInf {
     int mapsTo, jobID;
 } CoreInf;
 
+enum PE_Type
+{
+    CPU = 1,
+    GPU = 1
+};
+
 /* ROSS level state information for each core */
 struct proc_state
 {
     tw_stime start_ts;  /* time when first event is processed */
     tw_stime end_ts;    /* time when last event is processed */
     PE* my_pe;          /* stores all core information */
+    enum PE_Type pe_type; /* stores the type of PE */
 #if TRACER_BIGSIM_TRACES
     TraceReader* trace_reader; /* for reading the bigsim traces */
 #endif
@@ -128,6 +135,7 @@ struct Coll_lookup {
 
 /* core info to/from ROSS LP */
 int pe_to_lpid(int pe, int job);
+int pe_to_lpid_gpu(int pe, int job);
 int pe_to_job(int pe);
 int lpid_to_pe(int lp_gid);
 int lpid_to_job(int lp_gid);
@@ -155,6 +163,28 @@ void proc_commit_event(
     proc_msg * m,
     tw_lp * lp);
 void proc_finalize(
+    proc_state * ns,
+    tw_lp * lp);
+
+void proc_init_gpu(
+    proc_state * ns,
+    tw_lp * lp);
+void proc_event_gpu(
+    proc_state * ns,
+    tw_bf * b,
+    proc_msg * m,
+    tw_lp * lp);
+void proc_rev_event_gpu(
+    proc_state * ns,
+    tw_bf * b,
+    proc_msg * m,
+    tw_lp * lp);
+void proc_commit_event_gpu(
+    proc_state * ns,
+    tw_bf * b,
+    proc_msg * m,
+    tw_lp * lp);
+void proc_finalize_gpu(
     proc_state * ns,
     tw_lp * lp);
 

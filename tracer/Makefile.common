@@ -28,10 +28,10 @@ endif
 SEQ_CXX = ${CXX}
 
 # ROSS install directory
-ROSS_DIR = ${HOME}/spack/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/ross-7.0.0
+ROSS_DIR = ${HOME}/TraceR/ROSS/install
 
 # CODES install directory
-CODES_DIR  = ${HOME}/spack/opt/spack/linux-rhel7-x86_64/gcc-4.9.3/codes-1.0.0
+CODES_DIR  = ${HOME}/TraceR/codes/install
 CODES_LIBS = -L${CODES_DIR}/lib -Wl,-rpath,${CODES_DIR}/lib
 CODES_LIBS += -L${ROSS_DIR}/lib -Wl,-rpath,${ROSS_DIR}/lib
 CODES_LIBS += -lcodes -lROSS -lm
@@ -47,7 +47,8 @@ CODES_CXXFLAGS = -I${CODES_DIR}/include -I${ROSS_DIR}/include
 SELECT_TRACE = -DTRACER_OTF_TRACES=1
 
 LDFLAGS  = -g
-CXXFLAGS = -O2 -g ${ARCH_FLAGS} # -DNO_COMM_BUILD=1
+#CXXFLAGS = -O2 -g ${ARCH_FLAGS} # -DNO_COMM_BUILD=1
+CXXFLAGS = -g ${ARCH_FLAGS} # -DNO_COMM_BUILD=1
 CXXFLAGS += -Ibigsim -I.
 CXXFLAGS += ${CODES_CXXFLAGS} ${SELECT_TRACE}
 

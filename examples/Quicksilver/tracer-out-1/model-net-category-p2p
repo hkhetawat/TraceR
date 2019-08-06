@@ -1,0 +1,16 @@
+lp:8	send_count:2480	send_bytes:20231544	send_time:1700129.747899	recv_count:1724	recv_bytes:14047184	recv_time:18376371.426743	max_event_size:544
+lp:9	send_count:3441	send_bytes:28071880	send_time:2358981.512605	recv_count:1831	recv_bytes:14931328	recv_time:19948061.542208	max_event_size:544
+lp:10	send_count:2054	send_bytes:16761296	send_time:1408512.268908	recv_count:4674	recv_bytes:38178272	recv_time:194359421.881481	max_event_size:544
+lp:11	send_count:2312	send_bytes:18851808	send_time:1584185.546218	recv_count:4105	recv_bytes:33516336	recv_time:168997801.949947	max_event_size:544
+lp:23	send_count:659	send_bytes:5382256	send_time:452290.420168	recv_count:4213	recv_bytes:34431568	recv_time:170437214.809672	max_event_size:544
+lp:24	send_count:2740	send_bytes:22365336	send_time:1879440.000000	recv_count:950	recv_bytes:7746912	recv_time:11434520.350889	max_event_size:544
+lp:25	send_count:2279	send_bytes:18588784	send_time:1562082.689076	recv_count:3146	recv_bytes:25697368	recv_time:67551440.608975	max_event_size:544
+lp:26	send_count:652	send_bytes:5310584	send_time:446267.563025	recv_count:3928	recv_bytes:32103232	recv_time:120045082.564206	max_event_size:544
+lp:38	send_count:2584	send_bytes:21092816	send_time:1772505.546218	recv_count:1602	recv_bytes:13051376	recv_time:19057390.841299	max_event_size:544
+lp:39	send_count:1646	send_bytes:13420632	send_time:1127784.201681	recv_count:1052	recv_bytes:8533208	recv_time:11920756.966633	max_event_size:544
+lp:40	send_count:2312	send_bytes:18863480	send_time:1585166.386555	recv_count:2960	recv_bytes:24152696	recv_time:72639507.736667	max_event_size:544
+lp:41	send_count:3453	send_bytes:28193152	send_time:2369172.436975	recv_count:1286	recv_bytes:10466832	recv_time:20299187.966978	max_event_size:544
+lp:53	send_count:2202	send_bytes:17976328	send_time:1510615.798319	recv_count:1390	recv_bytes:11324584	recv_time:16755849.706833	max_event_size:544
+lp:54	send_count:3737	send_bytes:30464816	send_time:2560068.571429	recv_count:2774	recv_bytes:22617576	recv_time:31578081.896912	max_event_size:544
+lp:55	send_count:3024	send_bytes:24693736	send_time:2075103.865546	recv_count:2574	recv_bytes:20994768	recv_time:31461299.490794	max_event_size:544
+lp:56	send_count:5226	send_bytes:42645736	send_time:3583675.294118	recv_count:2592	recv_bytes:21120944	recv_time:29813070.243941	max_event_size:544

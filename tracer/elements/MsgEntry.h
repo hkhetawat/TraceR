@@ -34,6 +34,8 @@ struct MsgID {
 #if TRACER_OTF_TRACES
     int comm, coll_type;
     int64_t seq;
+    int64_t dst_buf_location;
+    int64_t src_buf_location;
 #endif
 };
 
