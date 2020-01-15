@@ -1,0 +1,430 @@
+../../bin/traceR --sync=1 -- fattree-1.conf tracer_config 
+
+Mon Oct 14 11:36:46 2019
+
+ROSS Version: v7.1.1
+
+tw_net_start: Found world size to be 1 
+Config file is fattree-1.conf
+Trace input file is tracer_config
+FT type is 0
+FT num levels is 3
+FT tapering is 1.000000
+Pods 4; L2 pods 2; Link repetition:2; l1_set_size 4
+num_switches[0]=16
+num_switches[1]=16
+num_switches[2]=8
+FT packet size is 8192
+FT num rails is 1
+FT router delay is 60.0
+FT buffer size links is 65536
+FT buffer size injection is 65536
+FT routing is 2
+FT rail selection is 1
+FT rail select limit  is 8192
+FT bandwidths link 11.9 node 24.0
+within node transfer per byte delay is 0.033333
+Found soft_delay as 200.000000
+Found nic_delay as 400.000000
+Found rdma_delay as 1000.000000
+Copy cost per byte is 0.010000 ns
+Eager limit is 64000.000000 bytes
+Begin reading tracer_config
+Reading global_map.bin
+Read mapping of 2 ranks
+Job 0 - ranks 2, trace folder traces-2/traces.otf2, rank file job0, iters 1
+Done reading meta-information about jobs
+Loading map file for job 0 from job0
+Read global definition for job 0 from traces-2/traces.otf2
+Clock Props: 512005284 1000000000 1.953105
+
+ROSS Core Configuration: 
+	Total PEs                                                    1
+	Total KPs                                          [Nodes (1) x KPs (16)] 16
+	Total LPs                                                  240
+	Simulation End Time                                3600000000000.00
+	LP-to-PE Mapping                                   model defined
+
+
+ROSS Event Memory Allocation:
+	Model events                                             61441
+	Network events                                              16
+	Total events                                             61456
+
+GID of CPU is 0 and PE id is : 0 and job ID is: 0.
+SEND - LocationID: 0, BUF_LOCATION: 2, RECIEVER: 1
+SEND - LocationID: 0, BUF_LOCATION: 1, RECIEVER: 1
+For PE: 0, the number of tasks is: 5
+Tasks are: 
+Task 0: -1
+Task 1: -3
+Task 2: -1
+Task 3: -3
+Task 4: -1
+GID of CPU is 1 and PE id is : 1 and job ID is: 0.
+RECV - LocationID: 1, BUF_LOCATION: 2, SENDER: 0
+RECV - LocationID: 1, BUF_LOCATION: 1, SENDER: 0
+For PE: 1, the number of tasks is: 5
+Tasks are: 
+Task 0: -1
+Task 1: -4
+Task 2: -1
+Task 3: -4
+Task 4: -1
+GID of GPU is 4 and PE id is : 0 and job ID is: 0.
+For PE: 0, the number of tasks is: 0
+Tasks are: 
+GID of GPU is 5 and PE id is : 1 and job ID is: 0.
+For PE: 1, the number of tasks is: 0
+Tasks are: 
+*** START SEQUENTIAL SIMULATION ***
+
+In handle Kickoff for pe num 0 and pe type 2
+PE0 - LP_GID:4 : START SIMULATION, TASKS COUNT: 0, FIRST TASK: 0, RUN TIME TILL NOW=0.000000 s, CURRENT SIM TIME 0.349792
+In Kickoff for GPU: PE is 0, GID is 4.
+In handle Kickoff for pe num 1 and pe type 2
+In Kickoff for GPU: PE is 1, GID is 5.
+In handle Kickoff for pe num 0 and pe type 1
+PE0 - LP_GID:0 : START SIMULATION, TASKS COUNT: 5, FIRST TASK: 0, RUN TIME TILL NOW=0.000000 s, CURRENT SIM TIME 1.005877
+In Kickoff for CPU: PE is 0, GID is 0.
+0 Set busy true 0
+[ 0 0 : time at task 0/5 0.000000 ]
+In handle Kickoff for pe num 1 and pe type 1
+In Kickoff for CPU: PE is 1, GID is 1.
+1 Set busy true 0
+1 PUSH recv: 1 - 0 0 0 0 0 1
+0 Set busy true 1
+0 Set busy true 2
+Set num_servers per router 4, servers per injection queue per router 4, servers per node copy queue per node 1
+[0:1] RECD MSG FOUND TASK: 0 0 0 1 - 1
+PE1: handle_recv_event - received from 0 id: 0 for task: 1. TIME now:71817.814986.
+1 Recv  busy 0 1
+1 Set busy true 1
+1 Set busy true 2
+0 Set busy true 3
+0 Set busy true 4
+1 Set busy true 3
+1 Set busy true 4
+*** END SIMULATION ***
+
+Job[0]PE[0]: FINALIZE in 0.000213 seconds.
+
+	: Running Time = 0.0002 seconds
+
+TW Library Statistics:
+	Total Events Processed                                      36
+	Events Aborted (part of RBs)                                 0
+	Events Rolled Back                                           0
+	Event Ties Detected in PE Queues                             0
+	Efficiency                                              100.00 %
+	Total Remote (shared mem) Events Processed                   0
+	Percent Remote Events                                     0.00 %
+	Total Remote (network) Events Processed                      0
+	Percent Remote Events                                     0.00 %
+
+	Total Roll Backs                                             0
+	Primary Roll Backs                                           0
+	Secondary Roll Backs                                         0
+	Fossil Collect Attempts                                      0
+	Total GVT Computations                                       0
+
+	Net Events Processed                                        36
+	Event Rate (events/sec)                               211764.7
+	Total Events Scheduled Past End Time                         0
+
+TW Memory Statistics:
+	Events Allocated                                         61457
+	Memory Allocated                                         42339
+	Memory Wasted                                              455
+
+TW Data Structure sizes in bytes (sizeof):
+	PE struct                                                  624
+	KP struct                                                  144
+	LP struct                                                  136
+	LP Model struct                                           8376
+	LP RNGs                                                     80
+	Total LP                                                  8592
+	Event struct                                               152
+	Event struct with Model                                    696
+
+TW Clock Cycle Statistics (MAX values in secs at 1.0000 GHz):
+	Initialization                                          0.2230
+	Priority Queue (enq/deq)                                0.0000
+	AVL Tree (insert/delete)                                0.0000
+	LZ4 (de)compression                                     0.0000
+	Buddy system                                            0.0000
+	Event Processing                                        0.0000
+	Event Cancel                                            0.0000
+	Event Abort                                             0.0000
+
+	GVT                                                     0.0000
+	Fossil Collect                                          0.0000
+	Primary Rollbacks                                       0.0000
+	Network Read                                            0.0000
+	Other Network                                           0.0000
+	Instrumentation (computation)                           0.0000
+	Instrumentation (write)                                 0.0000
+	Total Time (Note: Using Running Time above for Speedup)      0.0004
+
+TW GVT Statistics: MPI AllReduce
+	GVT Interval                                                16
+	GVT Real Time Interval (cycles)                    0
+	GVT Real Time Interval (sec)                        0.00000000
+	Batch Size                                                  16
+
+	Forced GVT                                                   0
+	Total GVT Computations                                       0
+	Total All Reduce Calls                                       0
+	Average Reduction / GVT                                   -nan
+LP-IO: writing output to tracer-out-18035-1571078206/
+LP-IO: data files:
+   tracer-out-18035-1571078206/fattree-switch-traffic
+   tracer-out-18035-1571078206/fattree-switch-stats
+   tracer-out-18035-1571078206/fattree-msg-stats
+   tracer-out-18035-1571078206/model-net-category-all
+   tracer-out-18035-1571078206/model-net-category-test
+Job 0 Time 0.027319 s
+ Average number of hops traversed 1.000000 average chunk latency 1.439850 us maximum chunk latency 1.440279 us avg message size 8192.000000 bytes finished messages 2 finished chunks 2 
+ Total packets generated 2 finished 2 
+ Average number of hops traversed 1.000000 average chunk latency 1.439850 us maximum chunk latency 1.440279 us avg message size 8192.000000 bytes finished messages 2 
+../../bin/traceR --sync=1 -- fattree-1.conf tracer_config 
+
+Tue Oct 15 20:44:04 2019
+
+ROSS Version: v7.1.1
+
+tw_net_start: Found world size to be 1 
+Config file is fattree-1.conf
+Trace input file is tracer_config
+FT type is 0
+FT num levels is 3
+FT tapering is 1.000000
+Pods 4; L2 pods 2; Link repetition:2; l1_set_size 4
+num_switches[0]=16
+num_switches[1]=16
+num_switches[2]=8
+FT packet size is 8192
+FT num rails is 1
+FT router delay is 60.0
+FT buffer size links is 65536
+FT buffer size injection is 65536
+FT routing is 2
+FT rail selection is 1
+FT rail select limit  is 8192
+FT bandwidths link 11.9 node 24.0
+within node transfer per byte delay is 0.033333
+Found soft_delay as 200.000000
+Found nic_delay as 400.000000
+Found rdma_delay as 1000.000000
+Copy cost per byte is 0.010000 ns
+Eager limit is 64000.000000 bytes
+Begin reading tracer_config
+Reading global_map.bin
+Read mapping of 2 ranks
+Job 0 - ranks 2, trace folder traces-2/traces.otf2, rank file job0, iters 1
+Done reading meta-information about jobs
+Loading map file for job 0 from job0
+Read global definition for job 0 from traces-2/traces.otf2
+Clock Props: 512003124 1000000000 1.953113
+
+ROSS Core Configuration: 
+	Total PEs                                                    1
+	Total KPs                                          [Nodes (1) x KPs (16)] 16
+	Total LPs                                                  240
+	Simulation End Time                                3600000000000.00
+	LP-to-PE Mapping                                   model defined
+
+
+ROSS Event Memory Allocation:
+	Model events                                             61441
+	Network events                                              16
+	Total events                                             61456
+
+GID of CPU is 0 and PE id is : 0 and job ID is: 0.
+SEND - LocationID: 0, BUF_LOCATION: 1, RECIEVER: 1
+For PE: 0, the number of tasks is: 14
+Tasks are: 
+Task 0: -1, isGPUDirect: 0
+Task 1: -1, isGPUDirect: 0
+Task 2: -1, isGPUDirect: 0
+Task 3: -1, isGPUDirect: 0
+Task 4: -1, isGPUDirect: 0
+Task 5: -1, isGPUDirect: 0
+Task 6: -1, isGPUDirect: 0
+Task 7: -1, isGPUDirect: 0
+Task 8: -3, isGPUDirect: 1
+Task 9: -1, isGPUDirect: 0
+Task 10: -6, isGPUDirect: 0
+Task 11: -1, isGPUDirect: 0
+Task 12: -3, isGPUDirect: 0
+Task 13: -1, isGPUDirect: 0
+GID of CPU is 1 and PE id is : 1 and job ID is: 0.
+RECV - LocationID: 1, BUF_LOCATION: 1, SENDER: 0
+For PE: 1, the number of tasks is: 12
+Tasks are: 
+Task 0: -1, isGPUDirect: 0
+Task 1: -1, isGPUDirect: 0
+Task 2: -1, isGPUDirect: 0
+Task 3: -1, isGPUDirect: 0
+Task 4: -1, isGPUDirect: 0
+Task 5: -1, isGPUDirect: 0
+Task 6: -7, isGPUDirect: 0
+Task 7: -1, isGPUDirect: 0
+Task 8: -8, isGPUDirect: 1
+Task 9: -1, isGPUDirect: 0
+Task 10: -4, isGPUDirect: 0
+Task 11: -1, isGPUDirect: 0
+GID of GPU is 4 and PE id is : 0 and job ID is: 0.
+For PE: 0, the number of tasks is: 0
+Tasks are: 
+GID of GPU is 5 and PE id is : 1 and job ID is: 0.
+For PE: 1, the number of tasks is: 0
+Tasks are: 
+*** START SEQUENTIAL SIMULATION ***
+
+In handle Kickoff for pe num 0 and pe type 2
+PE0 - LP_GID:4 : START SIMULATION, TASKS COUNT: 0, FIRST TASK: 0, RUN TIME TILL NOW=0.000000 s, CURRENT SIM TIME 0.349792
+In Kickoff for GPU: PE is 0, GID is 4.
+In handle Kickoff for pe num 1 and pe type 2
+In Kickoff for GPU: PE is 1, GID is 5.
+In handle Kickoff for pe num 0 and pe type 1
+PE0 - LP_GID:0 : START SIMULATION, TASKS COUNT: 14, FIRST TASK: 0, RUN TIME TILL NOW=0.000000 s, CURRENT SIM TIME 1.005877
+In Kickoff for CPU: PE is 0, GID is 0.
+FounD task for PE: 0, isGPUDirect: 0, event_id: -1.
+0 Set busy true 0
+[ 0 0 : time at task 0/14 0.000000 ]
+In handle Kickoff for pe num 1 and pe type 1
+In Kickoff for CPU: PE is 1, GID is 1.
+FounD task for PE: 1, isGPUDirect: 0, event_id: -1.
+1 Set busy true 0
+FounD task for PE: 1, isGPUDirect: 0, event_id: -1.
+1 Set busy true 1
+FounD task for PE: 1, isGPUDirect: 0, event_id: -1.
+1 Set busy true 2
+FounD task for PE: 0, isGPUDirect: 0, event_id: -1.
+0 Set busy true 1
+FounD task for PE: 0, isGPUDirect: 0, event_id: -1.
+0 Set busy true 2
+FounD task for PE: 0, isGPUDirect: 0, event_id: -1.
+0 Set busy true 3
+FounD task for PE: 1, isGPUDirect: 0, event_id: -1.
+1 Set busy true 3
+FounD task for PE: 0, isGPUDirect: 0, event_id: -1.
+0 Set busy true 4
+FounD task for PE: 0, isGPUDirect: 0, event_id: -1.
+0 Set busy true 5
+FounD task for PE: 0, isGPUDirect: 0, event_id: -1.
+0 Set busy true 6
+FounD task for PE: 0, isGPUDirect: 0, event_id: -1.
+0 Set busy true 7
+FounD task for PE: 0, isGPUDirect: 1, event_id: -3.
+0 Set busy true 8
+FounD task for PE: 0, isGPUDirect: 0, event_id: -1.
+0 Set busy true 9
+Set num_servers per router 4, servers per injection queue per router 4, servers per node copy queue per node 1
+FounD task for PE: 0, isGPUDirect: 0, event_id: -6.
+0 Set busy true 10
+FounD task for PE: 0, isGPUDirect: 0, event_id: -1.
+0 Set busy true 11
+FounD task for PE: 0, isGPUDirect: 0, event_id: -3.
+0 Set busy true 12
+FounD task for PE: 0, isGPUDirect: 0, event_id: -1.
+0 Set busy true 13
+FounD task for PE: 1, isGPUDirect: 0, event_id: -1.
+1 Set busy true 4
+FounD task for PE: 1, isGPUDirect: 0, event_id: -1.
+1 Set busy true 5
+FounD task for PE: 1, isGPUDirect: 0, event_id: -7.
+1 Set busy true 6
+FounD task for PE: 1, isGPUDirect: 0, event_id: -1.
+1 Set busy true 7
+FounD task for PE: 1, isGPUDirect: 1, event_id: -8.
+1 Set busy true 8
+FounD task for PE: 1, isGPUDirect: 0, event_id: -1.
+1 Set busy true 9
+FounD task for PE: 1, isGPUDirect: 0, event_id: -4.
+1 Set busy true 10
+FounD task for PE: 1, isGPUDirect: 0, event_id: -1.
+1 Set busy true 11
+*** END SIMULATION ***
+
+Job[0]PE[0]: FINALIZE in 0.468669 seconds.
+
+	: Running Time = 0.0002 seconds
+
+TW Library Statistics:
+	Total Events Processed                                      52
+	Events Aborted (part of RBs)                                 0
+	Events Rolled Back                                           0
+	Event Ties Detected in PE Queues                             0
+	Efficiency                                              100.00 %
+	Total Remote (shared mem) Events Processed                   0
+	Percent Remote Events                                     0.00 %
+	Total Remote (network) Events Processed                      0
+	Percent Remote Events                                     0.00 %
+
+	Total Roll Backs                                             0
+	Primary Roll Backs                                           0
+	Secondary Roll Backs                                         0
+	Fossil Collect Attempts                                      0
+	Total GVT Computations                                       0
+
+	Net Events Processed                                        52
+	Event Rate (events/sec)                               232142.9
+	Total Events Scheduled Past End Time                         0
+
+TW Memory Statistics:
+	Events Allocated                                         61457
+	Memory Allocated                                         42339
+	Memory Wasted                                              455
+
+TW Data Structure sizes in bytes (sizeof):
+	PE struct                                                  624
+	KP struct                                                  144
+	LP struct                                                  136
+	LP Model struct                                           8376
+	LP RNGs                                                     80
+	Total LP                                                  8592
+	Event struct                                               152
+	Event struct with Model                                    696
+
+TW Clock Cycle Statistics (MAX values in secs at 1.0000 GHz):
+	Initialization                                          0.2644
+	Priority Queue (enq/deq)                                0.0000
+	AVL Tree (insert/delete)                                0.0000
+	LZ4 (de)compression                                     0.0000
+	Buddy system                                            0.0000
+	Event Processing                                        0.0000
+	Event Cancel                                            0.0000
+	Event Abort                                             0.0000
+
+	GVT                                                     0.0000
+	Fossil Collect                                          0.0000
+	Primary Rollbacks                                       0.0000
+	Network Read                                            0.0000
+	Other Network                                           0.0000
+	Instrumentation (computation)                           0.0000
+	Instrumentation (write)                                 0.0000
+	Total Time (Note: Using Running Time above for Speedup)      0.0005
+
+TW GVT Statistics: MPI AllReduce
+	GVT Interval                                                16
+	GVT Real Time Interval (cycles)                    0
+	GVT Real Time Interval (sec)                        0.00000000
+	Batch Size                                                  16
+
+	Forced GVT                                                   0
+	Total GVT Computations                                       0
+	Total All Reduce Calls                                       0
+	Average Reduction / GVT                                   -nan
+LP-IO: writing output to tracer-out-58466-1571197444/
+LP-IO: data files:
+   tracer-out-58466-1571197444/fattree-switch-traffic
+   tracer-out-58466-1571197444/fattree-switch-stats
+   tracer-out-58466-1571197444/fattree-msg-stats
+   tracer-out-58466-1571197444/model-net-category-all
+   tracer-out-58466-1571197444/model-net-category-test
+Job 0 Time 0.479462 s
+ Average number of hops traversed 1.000000 average chunk latency 1.439850 us maximum chunk latency 1.440279 us avg message size 8192.000000 bytes finished messages 2 finished chunks 2 
+ Total packets generated 2 finished 2 
+ Average number of hops traversed 1.000000 average chunk latency 1.439850 us maximum chunk latency 1.440279 us avg message size 8192.000000 bytes finished messages 2 

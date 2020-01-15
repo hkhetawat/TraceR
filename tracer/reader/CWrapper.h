@@ -100,5 +100,5 @@ void addEventSub(int job, char *key, double val, int numjobs);
 void addMsgSizeSub(int job, int64_t key, int64_t val, int numjobs);
 
 bool isPEonThisRank(int jobID, int i);
-void TraceReader_readOTF2Trace(PE* pe, int my_pe_num, int my_job, double *startTime);
+void TraceReader_readOTF2Trace(PE* pe, int my_pe_num, int my_job, double *startTime, int GPU);
 #endif

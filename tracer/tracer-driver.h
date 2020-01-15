@@ -43,7 +43,11 @@ typedef struct CoreInf {
 enum PE_Type
 {
     CPU = 1,
+<<<<<<< HEAD
+    GPU = 2 
+=======
     GPU = 1
+>>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
 };
 
 /* ROSS level state information for each core */
@@ -95,7 +99,10 @@ enum proc_event
     COLL_SCATTER,       /* scatter event */
     COLL_SCATTER_SEND_DONE,
     RECV_COLL_POST,     /* Message from receiver that a recv for collective is posted */
-    COLL_COMPLETE       /* collective completion event */
+    COLL_COMPLETE,       /* collective completion event */
+    GPU_SEND,
+    GPU_RECV_DONE,
+    GPU_SEND_DONE
 };
 
 /* Tracer's part of the ROSS message */
@@ -195,6 +202,21 @@ void handle_kickoff_event(
     proc_msg * m,
     tw_lp * lp);
 void handle_local_event(
+    proc_state * ns,
+    tw_bf * b,
+    proc_msg * m,
+   tw_lp * lp);
+void handle_gpu_send_done_event(
+    proc_state * ns,
+    tw_bf * b,
+    proc_msg * m,
+   tw_lp * lp);
+void handle_gpu_recv_done_event(
+    proc_state * ns,
+    tw_bf * b,
+    proc_msg * m,
+   tw_lp * lp);
+void handle_gpu_send_event(
     proc_state * ns,
     tw_bf * b,
     proc_msg * m,
@@ -338,6 +360,7 @@ int send_msg(
     tw_lp * lp,
     bool fillSz = false,
     int64_t size2 = 0);
+
 
 void enqueue_msg(
     proc_state * ns,

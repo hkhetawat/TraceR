@@ -43,7 +43,10 @@ enum Tracer_evt_type {
   TRACER_SEND_COMP_EVT = -6,
   TRACER_RECV_POST_EVT = -7,
   TRACER_RECV_COMP_EVT = -8,
-  TRACER_LOOP_EVT = -9
+  TRACER_LOOP_EVT = -9,
+  TRACER_CPU_GPU_EVT = -10,
+  TRACER_GPU_CPU_EVT = -11,
+  TRACER_WAIT_EVT = -12
 };
 
 struct ClockProperties {
@@ -88,7 +91,7 @@ OTF2_Reader * readGlobalDefinitions(int jobID, char* tracefileName,
   AllData *allData);
 
 void readLocationTasks(int jobID, OTF2_Reader *reader, AllData *allData, 
-  uint32_t loc, LocationData* ld);
+  uint32_t loc, LocationData* ld, int GPU);
 
 void closeReader(OTF2_Reader *reader);
 #endif

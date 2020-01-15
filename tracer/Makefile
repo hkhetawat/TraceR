@@ -29,9 +29,11 @@ OBJS = ${SRCS:.C=.o}
 
 traceR: ${OBJS} components
 	${CXX} ${LDFLAGS} ${OBJS} -o $@ ${TRACER_LDADD} ${LIBS}
+	#${CXX} ${LDFLAGS} ${OBJS} -DDEBUG_PRINT -o $@ ${TRACER_LDADD} ${LIBS}
 
 %.o: %.C
 	${CXX} ${CXXFLAGS} -c $< -o $@
+	#${CXX} ${CXXFLAGS} -DDEBUG_PRINT -c $< -o $@
 
 components:
 	cd reader; make;

@@ -333,13 +333,13 @@ void TraceReader::setTaskFromLog(Task *t, BgTimeLog* bglog, int taskPE,
 
 #elif TRACER_OTF_TRACES
 #include "otf2_reader.h"
-void TraceReader_readOTF2Trace(PE* pe, int my_pe_num, int my_job, double *startTime) {
+void TraceReader_readOTF2Trace(PE* pe, int my_pe_num, int my_job, double *startTime, int GPU) {
   pe->myNum = my_pe_num;
   pe->jobNum = my_job;
   LocationData *ld = new LocationData;
   
   readLocationTasks(my_job, jobs[my_job].reader, jobs[my_job].allData,
-      my_pe_num, ld);
+      my_pe_num, ld, GPU);
 
   pe->myTasks = &(ld->tasks[0]);
   pe->tasksCount = ld->tasks.size();
@@ -354,6 +354,9 @@ void TraceReader_readOTF2Trace(PE* pe, int my_pe_num, int my_job, double *startT
     pe->msgStatus[i] = NULL;
     pe->allMarked[i] = false;
   }
+
+  printf("For PE: %d, the number of tasks is: %d\n", my_pe_num, pe->tasksCount);  
+
   //initialize only for first iter
   pe->goToNextIter(-1);
   pe->firstTask = 0;
@@ -385,9 +388,12 @@ void TraceReader_readOTF2Trace(PE* pe, int my_pe_num, int my_job, double *startT
     }
   }
 
+  printf("Tasks are: \n");
+
   for(int logInd = 0; logInd  < pe->tasksCount; logInd++)
   {
     Task *t = &(ld->tasks[logInd]);
+    printf("Task %d: %d, isGPUDirect: %d, with request ID: %d\n", logInd, t->event_id, t->myEntry.msgId.isGPUDirect, t->req_id);
     if(time_replace_limit != -1 && t->execTime >= time_replace_limit) {
       t->execTime = (double)TIME_MULT * time_replace_by;
     } 

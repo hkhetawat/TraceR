@@ -37,6 +37,7 @@ extern "C" {
 }
 
 #include "tracer-driver.h"
+#define DEBUG_PRINT 1
 
 char tracer_input[256]; /* filename for tracer input file */
 
@@ -472,7 +473,11 @@ void proc_init(
     ns->my_pe = new PE();
     tw_stime startTime=0;
 
+<<<<<<< HEAD
+    printf("GID of CPU is %d and PE id is : %d and job ID is: %d.\n", lp->gid, ns->my_pe_num, ns->my_job);
+=======
     printf("GID of CPU is %d and PE id is : %d.\n", lp->gid, ns->my_pe_num);
+>>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
 
     // Each server reads it's full trace
 #if TRACER_BIGSIM_TRACES
@@ -484,7 +489,7 @@ void proc_init(
     TraceReader_readTrace(ns->trace_reader, &tot, &totn, &emPes, &nwth,
                          ns->my_pe, ns->my_pe_num,  ns->my_job, &startTime);
 #else 
-    TraceReader_readOTF2Trace(ns->my_pe, ns->my_pe_num, ns->my_job, &startTime);
+    TraceReader_readOTF2Trace(ns->my_pe, ns->my_pe_num, ns->my_job, &startTime, 1);
 #endif
 
     /* skew each kickoff event slightly to help avoid event ties later on */
@@ -779,6 +784,10 @@ void proc_init_gpu(
     ns->my_pe = new PE();
     tw_stime startTime=0;
 
+<<<<<<< HEAD
+    printf("GID of GPU is %d and PE id is : %d and job ID is: %d.\n", lp->gid, ns->my_pe_num, ns->my_job);
+    
+=======
     printf("GID of GPU is %d and PE id is : %d.\n", lp->gid, ns->my_pe_num);
     
     // Each server reads it's full trace
@@ -810,6 +819,7 @@ void proc_init_gpu(
     /* enqueue KICKOFF event with ROSS */
     //tw_event_send(e);
 
+>>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
     return;
 }
 
@@ -824,6 +834,16 @@ void proc_event_gpu(
   fflush(stdout);
   switch (m->proc_event_type)
   {
+<<<<<<< HEAD
+    case GPU_SEND:
+      handle_gpu_send_event(ns, b, m, lp);
+      break;
+    case GPU_RECV_DONE:
+      handle_gpu_recv_done_event(ns, b, m, lp);
+      break;
+    case GPU_SEND_DONE:
+      handle_gpu_send_done_event(ns, b, m, lp);
+=======
     case KICKOFF:
       handle_kickoff_event(ns, b, m, lp);
       break;
@@ -889,6 +909,7 @@ void proc_event_gpu(
       break;
     case COLL_COMPLETE:
       handle_coll_complete_event(ns, b, m, lp);
+>>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
       break;
     default:
       printf("\n Invalid message type %d event %lld ", 
@@ -905,6 +926,8 @@ void proc_rev_event_gpu(
     proc_msg * m,
     tw_lp * lp)
 {
+<<<<<<< HEAD
+=======
   switch (m->proc_event_type)
   {
     case KICKOFF:
@@ -977,6 +1000,7 @@ void proc_rev_event_gpu(
       assert(0);
       break;
   }
+>>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
   return;
 }
 
@@ -1082,6 +1106,7 @@ void handle_kickoff_event(
 
     int my_pe_num = ns->my_pe_num;
     int my_job = ns->my_job;
+    printf("In handle Kickoff for pe num %d and pe type %d\n", my_pe_num, ns->pe_type);
     clock_t time_till_now = (double)(clock()-ns->sim_start)/CLOCKS_PER_SEC;
     if(my_pe_num == 0 && (my_job == 0 || my_job == num_jobs - 1)) {
         printf("PE%d - LP_GID:%d : START SIMULATION, TASKS COUNT: %d, FIRST "
@@ -1091,10 +1116,24 @@ void handle_kickoff_event(
     }
   
     //Safety check if the pe_to_lpid converter is correct
+<<<<<<< HEAD
+    if(ns->pe_type == CPU)
+    {
+		
+        printf("In Kickoff for CPU: PE is %d, GID is %d.\n", my_pe_num, lp->gid);
+        assert(pe_to_lpid(my_pe_num, my_job) == lp->gid);
+    }
+    if(ns->pe_type == GPU)
+    {
+        printf("In Kickoff for GPU: PE is %d, GID is %d.\n", my_pe_num, lp->gid);
+        assert(pe_to_lpid_gpu(my_pe_num, my_job) == lp->gid);
+    }
+=======
     //if(ns->pe_type == CPU)
         assert(pe_to_lpid(my_pe_num, my_job) == lp->gid);
     //if(ns->pe_type == GPU)
       //  assert(pe_to_lpid_gpu(my_pe_num, my_job) == lp->gid);
+>>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
     assert(PE_is_busy(ns->my_pe) == false);
     TaskPair pair;
     pair.iter = 0; pair.taskid = PE_getFirstTask(ns->my_pe);

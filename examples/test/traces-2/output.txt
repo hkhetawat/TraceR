@@ -1,0 +1,29 @@
+
+=== OTF2-PRINT ===
+=== Events =====================================================================
+Event                               Location            Timestamp  Attributes
+--------------------------------------------------------------------------------
+ENTER                                      0     4118999462792842  Region: "MPI_Init" <35>
+ENTER                                      1     4118999462814112  Region: "MPI_Init" <35>
+LEAVE                                      1     4118999654892447  Region: "MPI_Init" <35>
+LEAVE                                      0     4118999654892449  Region: "MPI_Init" <35>
+ENTER                                      1     4118999654921253  Region: "MPI_Recv" <54>
+                                                                   ADDITIONAL ATTRIBUTES: ("MPI_DST_BUF_LOCATION" <2>; UINT32; 2)
+ENTER                                      0     4118999654928080  Region: "MPI_Send" <66>
+                                                                   ADDITIONAL ATTRIBUTES: ("MPI_SRC_BUF_LOCATION" <1>; UINT32; 2)
+MPI_SEND                                   0     4118999654931644  Receiver: 1 ("Master thread" <1>), Communicator: "MPI_COMM_WORLD" <0>, Tag: 0, Length: 8192
+MPI_RECV                                   1     4118999691575252  Sender: 0 ("Master thread" <0>), Communicator: "MPI_COMM_WORLD" <0>, Tag: 0, Length: 8192
+LEAVE                                      0     4118999691575506  Region: "MPI_Send" <66>
+LEAVE                                      1     4118999691584854  Region: "MPI_Recv" <54>
+ENTER                                      0     4118999691645480  Region: "MPI_Send" <66>
+                                                                   ADDITIONAL ATTRIBUTES: ("MPI_SRC_BUF_LOCATION" <1>; UINT32; 1)
+MPI_SEND                                   0     4118999691649250  Receiver: 1 ("Master thread" <1>), Communicator: "MPI_COMM_WORLD" <0>, Tag: 0, Length: 8192
+LEAVE                                      0     4118999691680814  Region: "MPI_Send" <66>
+ENTER                                      0     4118999691683574  Region: "MPI_Finalize" <16>
+ENTER                                      1     4118999698778324  Region: "MPI_Recv" <54>
+                                                                   ADDITIONAL ATTRIBUTES: ("MPI_DST_BUF_LOCATION" <2>; UINT32; 1)
+MPI_RECV                                   1     4118999698799670  Sender: 0 ("Master thread" <0>), Communicator: "MPI_COMM_WORLD" <0>, Tag: 0, Length: 8192
+LEAVE                                      1     4118999698800152  Region: "MPI_Recv" <54>
+ENTER                                      1     4118999705556714  Region: "MPI_Finalize" <16>
+LEAVE                                      1     4118999705583999  Region: "MPI_Finalize" <16>
+LEAVE                                      0     4118999705584597  Region: "MPI_Finalize" <16>

@@ -16,6 +16,76 @@ extern "C" {
 }
 
 #include "tracer-driver.h"
+#define DEBUG_PRINT 1
+
+void handle_gpu_send_event(
+    proc_state * ns,
+    tw_bf * b,
+    proc_msg * m,
+    tw_lp * lp)
+{
+  printf("In GPU_SEND event handler.\n");
+  proc_msg gpu_gpu_msg;
+  gpu_gpu_msg.proc_event_type = GPU_RECV_DONE;
+  gpu_gpu_msg.src = lp->gid;
+  gpu_gpu_msg.msgId = m->msgId;
+  gpu_gpu_msg.iteration = m->iteration;
+
+  proc_msg local_event;
+  local_event.proc_event_type = GPU_SEND_DONE;
+  local_event.msgId = m->msgId;
+  local_event.iteration = m->iteration;
+
+  model_net_event(net_id, "gpu_direct", pe_to_lpid_gpu(m->msgId.dest_id, m->msgId.job), m->msgId.size, rdma_delay + nic_delay, sizeof(proc_msg), &gpu_gpu_msg, sizeof(proc_msg), &local_event, lp);
+
+  return;
+}
+
+void handle_gpu_send_done_event(
+    proc_state * ns,
+    tw_bf * b,
+    proc_msg * m,
+    tw_lp * lp)
+{
+  printf("In GPU_SEND_DONE event handler.\n");
+  proc_msg cpu_cntrl_msg;
+  if(m->msgId.isNonBlocking)
+  {
+    cpu_cntrl_msg.proc_event_type = SEND_COMP;
+    cpu_cntrl_msg.msgId.id = m->msgId.req_id;
+  }
+  else 
+  {
+    cpu_cntrl_msg.proc_event_type = EXEC_COMPLETE;
+    cpu_cntrl_msg.iteration = m->iteration;
+    cpu_cntrl_msg.msgId.id = m->msgId.taskid;
+    printf("Sending EXEC_COMPLETE event with iteration number %d and task_id %d.\n", cpu_cntrl_msg.iteration, cpu_cntrl_msg.msgId.id);
+  }
+  
+  model_net_event(net_id, "control", pe_to_lpid(ns->my_pe_num, ns->my_job), 16, soft_delay_mpi, sizeof(proc_msg), &cpu_cntrl_msg, 0, NULL, lp); 
+
+  return;
+}
+
+
+void handle_gpu_recv_done_event(
+    proc_state * ns,
+    tw_bf * b,
+    proc_msg * m,
+    tw_lp * lp)
+{
+  printf("In GPU_RECV_DONE event handler.\n");
+  proc_msg cpu_cntrl_msg;
+  cpu_cntrl_msg.proc_event_type = RECV_MSG;
+  cpu_cntrl_msg.src = pe_to_lpid(lpid_to_pe(lp->gid), ns->my_job);
+  cpu_cntrl_msg.msgId = m->msgId;
+  cpu_cntrl_msg.iteration = m->iteration;
+  
+  model_net_event(net_id, "control", pe_to_lpid(ns->my_pe_num, ns->my_job), 16, soft_delay_mpi, sizeof(proc_msg), &cpu_cntrl_msg, 0, NULL, lp);
+ 
+  return;
+}
+
 
 void handle_recv_event(
     proc_state * ns,
@@ -92,7 +162,7 @@ void handle_recv_event(
             assert(0);
         }
         PE_invertMsgPe(ns->my_pe, iter, task_id);
-        if(m->msgId.size <= eager_limit && ns->my_pe->currIter == 0) {
+        if(m->msgId.size <= eager_limit && m->msgId.isGPUDirect == 0 && ns->my_pe->currIter == 0) {
           b->c1 = 1;
           if(m->msgId.pe != ns->my_pe_num) {
             PE_addTaskExecTime(ns->my_pe, task_id, nic_delay);
@@ -318,11 +388,31 @@ void delegate_send_msg(proc_state *ns,
     m_local.iteration = ns->my_pe->currIter;
     m_local.msgId.id = taskid;
   }
+
   MsgEntry *taskEntry = &t->myEntry;
+  if(taskEntry->msgId.isGPUDirect == 0)
+  {
+  printf("delegate_send_msg called on source PE %d for destination PE %d.\n", ns->my_pe_num, taskEntry->node);  
   enqueue_msg(ns, MsgEntry_getSize(taskEntry),
       ns->my_pe->currIter, &taskEntry->msgId, taskEntry->msgId.seq,
       pe_to_lpid(taskEntry->node, ns->my_job), nic_delay+rdma_delay+delay, 
       RECV_MSG, &m_local, lp);
+  }
+  else
+  {
+    printf("Delegating send to GPU from source PE %d to destination PE %d.\n", ns->my_pe_num, taskEntry->node); 
+    struct proc_msg gpu_cntrl_msg;
+    gpu_cntrl_msg.proc_event_type = GPU_SEND;
+    gpu_cntrl_msg.src = pe_to_lpid(ns->my_pe_num, ns->my_job);
+    gpu_cntrl_msg.iteration = ns->my_pe->currIter;
+    gpu_cntrl_msg.msgId = taskEntry->msgId;
+    gpu_cntrl_msg.msgId.isNonBlocking = t->isNonBlocking;
+    gpu_cntrl_msg.msgId.dest_id = taskEntry->node;
+    gpu_cntrl_msg.msgId.req_id = t->req_id;
+    gpu_cntrl_msg.msgId.taskid = taskid;
+    gpu_cntrl_msg.msgId.job = ns->my_job; 
+    model_net_event(net_id, "control", pe_to_lpid_gpu(ns->my_pe_num, ns->my_job), 16, delay + soft_delay_mpi, sizeof(struct proc_msg), (const void *)&gpu_cntrl_msg, 0, NULL, lp);
+  }
 }
 
 #endif 
@@ -366,6 +456,7 @@ tw_stime exec_task(
     tw_stime recvFinishTime = 0;
 #if TRACER_OTF_TRACES
     Task *t = &ns->my_pe->myTasks[task_id.taskid];
+    printf("FounD task for PE: %d, isGPUDirect: %d, event_id: %d.\n", ns->my_pe_num, t->myEntry.msgId.isGPUDirect, t->event_id);
 
     //delegate to routine that handles collectives
     if(t->event_id == TRACER_COLL_EVT) {
@@ -442,8 +533,9 @@ tw_stime exec_task(
       }
     }
     if(t->myEntry.node != ns->my_pe_num && 
-       t->myEntry.msgId.size > eager_limit &&
+       (t->myEntry.msgId.size > eager_limit || t->myEntry.msgId.isGPUDirect == 1) &&
        (t->event_id == TRACER_RECV_POST_EVT || needPost)) {
+      printf("Control message sent.\n");
       m->model_net_calls++;
       send_msg(ns, 16, ns->my_pe->currIter, &t->myEntry.msgId, seq,  
         pe_to_lpid(t->myEntry.node, ns->my_job), nic_delay, RECV_POST, lp);
@@ -470,139 +562,6 @@ tw_stime exec_task(
     m->saved_task = ns->my_pe->currentTask;
     ns->my_pe->currentTask = task_id.taskid;
 
-#if TRACER_BIGSIM_TRACES
-    //For each entry of the task, create a recv event and send them out to
-    //whereever it belongs       
-    int msgEntCount= PE_getTaskMsgEntryCount(ns->my_pe, task_id.taskid);
-    int myPE = ns->my_pe_num;
-    int nWth = PE_get_numWorkThreads(ns->my_pe);  
-    int myNode = myPE/nWth;
-    tw_stime soft_latency = codes_local_latency(lp);
-    tw_stime delay = MPI_INTERNAL_DELAY + soft_latency; //intra node latency
-    double sendFinishTime = 0;
-
-    for(int i=0; i<msgEntCount; i++){
-        MsgEntry* taskEntry = PE_getTaskMsgEntry(ns->my_pe, task_id.taskid, i);
-        tw_stime copyTime = copy_per_byte * MsgEntry_getSize(taskEntry);
-        if(MsgEntry_getSize(taskEntry) > eager_limit) {
-          copyTime = soft_latency;
-        }
-        int node = MsgEntry_getNode(taskEntry);
-        int thread = MsgEntry_getThread(taskEntry);
-        tw_stime sendOffset = soft_delay_mpi;
-        
-        //If there are intraNode messages
-        if (node == myNode || node == -1 || (node <= -100 && (node != -100-myNode || thread != -1)))
-        {
-          if(node == -100-myNode && thread != -1)
-          {
-            int destPE = myNode*nWth - 1;
-            for(int i=0; i<nWth; i++)
-            {
-              destPE++;
-              if(i == thread) continue;
-              delay += copyTime;
-              if(destPE == ns->my_pe_num) {
-                exec_comp(ns, task_id.iter, MsgEntry_getID(taskEntry), 0, sendOffset+delay, 1, lp);
-              }else{
-                m->model_net_calls++;
-                send_msg(ns, MsgEntry_getSize(taskEntry), 
-                    task_id.iter, &taskEntry->msgId, 0 /*not used */,
-                    pe_to_lpid(destPE, ns->my_job), sendOffset+delay, RECV_MSG,
-                    lp);
-              }
-            }
-          } else if(node != -100-myNode && node <= -100) {
-            int destPE = myNode*nWth - 1;
-            for(int i=0; i<nWth; i++)
-            {
-              destPE++;
-              delay += copyTime;
-              if(destPE == ns->my_pe_num){
-                exec_comp(ns, task_id.iter, MsgEntry_getID(taskEntry), 0, sendOffset+delay, 1, lp);
-              }else{
-                m->model_net_calls++;
-                send_msg(ns, MsgEntry_getSize(taskEntry), 
-                    task_id.iter, &taskEntry->msgId,  0 /*not used */,
-                    pe_to_lpid(destPE, ns->my_job), sendOffset+delay, RECV_MSG,
-                    lp);
-              }
-            }
-          } else if(thread >= 0) {
-            int destPE = myNode*nWth + thread;
-            delay += copyTime;
-            if(destPE == ns->my_pe_num){
-              exec_comp(ns, task_id.iter, MsgEntry_getID(taskEntry), 0, sendOffset+delay, 1, lp);
-            }else{
-              m->model_net_calls++;
-              send_msg(ns, MsgEntry_getSize(taskEntry),
-                  task_id.iter, &taskEntry->msgId,  0 /*not used */,
-                  pe_to_lpid(destPE, ns->my_job), sendOffset+delay, RECV_MSG,
-                  lp);
-            }
-          } else if(thread==-1) { // broadcast to all work cores
-            int destPE = myNode*nWth - 1;
-            for(int i=0; i<nWth; i++)
-            {
-              destPE++;
-              delay += copyTime;
-              if(destPE == ns->my_pe_num){
-                exec_comp(ns, task_id.iter, MsgEntry_getID(taskEntry), 0, sendOffset+delay, 1, lp);
-              }else{
-                m->model_net_calls++;
-                send_msg(ns, MsgEntry_getSize(taskEntry), 
-                    task_id.iter, &taskEntry->msgId,  0 /*not used */,
-                    pe_to_lpid(destPE, ns->my_job), sendOffset+delay, RECV_MSG,
-                    lp);
-              }
-            }
-          }
-        }
-          
-        if(node != myNode)
-        {
-          delay += copyTime;
-          if(node >= 0){
-            m->model_net_calls++;
-            send_msg(ns, MsgEntry_getSize(taskEntry),
-                task_id.iter, &taskEntry->msgId,  0 /*not used */,
-                pe_to_lpid(node, ns->my_job), sendOffset+delay, RECV_MSG, lp);
-          }
-          else if(node == -1){
-            bcast_msg(ns, MsgEntry_getSize(taskEntry),
-                task_id.iter, &taskEntry->msgId,
-                sendOffset+delay, copyTime, lp, m);
-          }
-          else if(node <= -100 && thread == -1){
-            for(int j=0; j<jobs[ns->my_job].numRanks; j++){
-              if(j == -node-100 || j == myNode) continue;
-              delay += copyTime;
-              m->model_net_calls++;
-              send_msg(ns, MsgEntry_getSize(taskEntry),
-                  task_id.iter, &taskEntry->msgId,  0 /*not used */,
-                  pe_to_lpid(j, ns->my_job), sendOffset+delay, RECV_MSG, lp);
-            }
-
-          }
-          else if(node <= -100){
-            for(int j=0; j<jobs[ns->my_job].numRanks; j++){
-              if(j == myNode) continue;
-              delay += copyTime;
-              m->model_net_calls++;
-              send_msg(ns, MsgEntry_getSize(taskEntry),
-                  task_id.iter, &taskEntry->msgId,  0 /*not used */,
-                  pe_to_lpid(j, ns->my_job), sendOffset+delay, RECV_MSG, lp);
-            }
-          }
-          else{
-            printf("message not supported yet! node:%d thread:%d\n",node,thread);
-          }
-        }
-        sendFinishTime = delay;
-    }
-
-    PE_execPrintEvt(lp, ns->my_pe, task_id.taskid, tw_now(lp));
-#else 
     tw_stime sendOffset, soft_latency = codes_local_latency(lp);
     tw_stime delay = soft_latency; //intra node latency
     double sendFinishTime = 0;
@@ -613,7 +572,7 @@ tw_stime exec_task(
       bool isCopying = true;
       tw_stime copyTime = copy_per_byte * MsgEntry_getSize(taskEntry);
       int node = MsgEntry_getNode(taskEntry);
-      if(MsgEntry_getSize(taskEntry) > eager_limit && node != ns->my_pe_num) {
+      if((MsgEntry_getSize(taskEntry) > eager_limit || taskEntry->msgId.isGPUDirect == 1) && node != ns->my_pe_num) {
         copyTime = soft_latency;
         isCopying = false;
       }
@@ -702,7 +661,6 @@ tw_stime exec_task(
         return 0;
       } 
     }
-#endif
     
     if(ns->my_pe_num == 0 && (ns->my_pe->currentTask % print_frequency == 0)) {
       char str[1000];
@@ -847,7 +805,7 @@ int send_msg(
              const void* remote_event, int self_event_size,
              const void* self_event, tw_lp *sender */
 
-        model_net_event(net_id, "test", dest_id, size, sendOffset,
+        model_net_event(net_id, "p2p", dest_id, size, sendOffset,
           sizeof(proc_msg), &m_remote, 0, NULL, lp);
     
     return 0;
