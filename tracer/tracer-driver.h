@@ -43,11 +43,7 @@ typedef struct CoreInf {
 enum PE_Type
 {
     CPU = 1,
-<<<<<<< HEAD
     GPU = 2 
-=======
-    GPU = 1
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
 };
 
 /* ROSS level state information for each core */

@@ -28,15 +28,9 @@
 extern JobInf *jobs;
 extern tw_stime soft_delay_mpi;
 
-<<<<<<< HEAD
 uint32_t MPI_SRC_BUF_LOCATION, MPI_DST_BUF_LOCATION, isGPUDevice;
 
 	static OTF2_CallbackCode
-=======
-uint32_t MPI_SRC_BUF_LOCATION, MPI_DST_BUF_LOCATION;
-
-static OTF2_CallbackCode
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
 callbackDefLocations(void*                 userData,
 		OTF2_LocationRef      location,
 		OTF2_StringRef        name,
@@ -210,7 +204,6 @@ callbackEvtBegin( OTF2_LocationRef    location,
 		OTF2_AttributeList* attributes,
 		OTF2_RegionRef      region )
 {
-<<<<<<< HEAD
 	LocationData* ld = (LocationData*)(((AllData *)userData)->ld);
 	if(!ld->firstEnter) {
 		addUserEvt(userData, time);
@@ -254,49 +247,6 @@ callbackEvtBegin( OTF2_LocationRef    location,
 
 	ld->lastLogTime = time;
 	return OTF2_CALLBACK_SUCCESS;
-=======
-  LocationData* ld = (LocationData*)(((AllData *)userData)->ld);
-  if(!ld->firstEnter) {
-    addUserEvt(userData, time);
-  } else {
-    ld->firstEnter = false;
-  }
-  AllData *globalData = (AllData *)userData;
-  if(globalData->regions[region].isTracerPrintEvt) {
-    ld->tasks.push_back(Task());
-    Task &new_task = ld->tasks[ld->tasks.size() - 1];
-    new_task.execTime = 0;
-    new_task.event_id = region;
-    new_task.beginEvent = true;
-  }
-  if(globalData->regions[region].isLoopEvt) {
-    ld->tasks.push_back(Task());
-    Task &new_task = ld->tasks[ld->tasks.size() - 1];
-    new_task.execTime = 0;
-    new_task.loopStartEvent = true;
-    new_task.event_id = TRACER_LOOP_EVT;
-  }
-    
-  int attCount = OTF2_AttributeList_GetNumberOfElements(attributes);
-
-  //std::cout<<"Region: "<<globalData->strings[globalData->regions[region].name]<<std::endl;
-
-  for(uint32_t i = 0; i < attCount; i++)
-  {
-    uint32_t id;
-    OTF2_Type type;
-    OTF2_AttributeValue value;
-    OTF2_AttributeList_PopAttribute(attributes, &id, &type, &value);
-    //printf("%d %d %d \n", id, (uint32_t)type, value.uint32);
-    if(id == 1)
-	MPI_SRC_BUF_LOCATION = value.uint32;
-    if(id == 2)
-	MPI_DST_BUF_LOCATION = value.uint32;  
-}
- 
-  ld->lastLogTime = time;
-  return OTF2_CALLBACK_SUCCESS;
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
 }
 
 	static OTF2_CallbackCode
@@ -343,7 +293,6 @@ callbackSendEvt(OTF2_LocationRef locationID,
 #if NO_COMM_BUILD
 	addEmptyUserEvt(userData);
 #else
-<<<<<<< HEAD
 	AllData *globalData = (AllData *)userData;
 /*	if(isGPUDevice == MPI_SRC_BUF_LOCATION)
 	{
@@ -444,25 +393,6 @@ callbackSendEvt(OTF2_LocationRef locationID,
 		std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
 		
 	}*/
-=======
-  AllData *globalData = (AllData *)userData;
-  ld->tasks.push_back(Task());
-  Task &new_task = ld->tasks[ld->tasks.size() - 1];
-  new_task.execTime = soft_delay_mpi;
-  new_task.event_id = TRACER_SEND_EVT;
-  Group& group = globalData->groups[globalData->communicators[communicator]];
-  new_task.myEntry.msgId.pe = locationID;
-  new_task.myEntry.msgId.id = msgTag;
-  new_task.myEntry.msgId.size = msgLength;
-  new_task.myEntry.msgId.comm = communicator;
-  new_task.myEntry.msgId.coll_type = -1;
-  new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-  new_task.myEntry.node = group.members[receiver];
-  new_task.myEntry.thread = 0;
-  new_task.isNonBlocking = false;
-
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
-
 #endif
 	ld->lastLogTime = time;
 	return OTF2_CALLBACK_SUCCESS;
@@ -484,7 +414,6 @@ callbackIsendEvt(OTF2_LocationRef locationID,
 #if NO_COMM_BUILD
 	addEmptyUserEvt(userData);
 #else
-<<<<<<< HEAD
 	AllData *globalData = (AllData *)userData;
 /*	if(isGPUDevice == MPI_SRC_BUF_LOCATION)
 	{
@@ -586,26 +515,6 @@ callbackIsendEvt(OTF2_LocationRef locationID,
 		
 	}*/
 
-=======
-  AllData *globalData = (AllData *)userData;
-  ld->tasks.push_back(Task());
-  Task &new_task = ld->tasks[ld->tasks.size() - 1];
-  new_task.execTime = soft_delay_mpi;
-  new_task.event_id = TRACER_SEND_EVT;
-  Group& group = globalData->groups[globalData->communicators[communicator]];
-  new_task.myEntry.msgId.pe = locationID;
-  new_task.myEntry.msgId.id = msgTag;
-  new_task.myEntry.msgId.size = msgLength;
-  new_task.myEntry.msgId.comm = communicator;
-  new_task.myEntry.msgId.coll_type = -1;
-  new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-  new_task.myEntry.node = group.members[receiver];
-  new_task.myEntry.thread = 0;
-  new_task.isNonBlocking = true;
-  new_task.req_id = requestID;
-
-
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
 #endif
 	ld->lastLogTime = time;
 	return OTF2_CALLBACK_SUCCESS;
@@ -623,7 +532,6 @@ callbackIsendCompEvt(OTF2_LocationRef locationID,
 #if NO_COMM_BUILD
 	addEmptyUserEvt(userData);
 #else
-<<<<<<< HEAD
 	if(isGPUDevice == 1)
 	{
 		ld->tasks.push_back(Task());
@@ -633,14 +541,6 @@ callbackIsendCompEvt(OTF2_LocationRef locationID,
 		new_task.event_id = TRACER_SEND_COMP_EVT;
 		new_task.req_id = requestID;
 	}
-=======
-  ld->tasks.push_back(Task());
-  Task &new_task = ld->tasks[ld->tasks.size() - 1];
-  new_task.execTime = soft_delay_mpi;
-  new_task.event_id = TRACER_SEND_COMP_EVT;
-  new_task.req_id = requestID;
-
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
 
 #endif
 	ld->lastLogTime = time;
@@ -662,7 +562,6 @@ callbackRecvEvt(OTF2_LocationRef locationID,
 #if NO_COMM_BUILD
 	addEmptyUserEvt(userData);
 #else
-<<<<<<< HEAD
 	AllData *globalData = (AllData *)userData;
 	/*if(isGPUDevice == MPI_DST_BUF_LOCATION)
 	{
@@ -763,25 +662,6 @@ callbackRecvEvt(OTF2_LocationRef locationID,
 		std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
 		
 	}*/
-=======
-  AllData *globalData = (AllData *)userData;
-  ld->tasks.push_back(Task());
-  Task &new_task = ld->tasks[ld->tasks.size() - 1];
-  new_task.execTime = soft_delay_mpi;
-  new_task.event_id = TRACER_RECV_EVT;
-  Group& group = globalData->groups[globalData->communicators[communicator]];
-  new_task.myEntry.msgId.pe = locationID;
-  new_task.myEntry.msgId.id = msgTag;
-  new_task.myEntry.msgId.size = msgLength;
-  new_task.myEntry.msgId.comm = communicator;
-  new_task.myEntry.msgId.coll_type = -1;
-  new_task.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
-  new_task.myEntry.node = group.members[sender];
-  new_task.myEntry.thread = 0;
-  new_task.isNonBlocking = false;
-
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
-
 #endif
 	ld->lastLogTime = time;
 	return OTF2_CALLBACK_SUCCESS;
@@ -800,7 +680,6 @@ callbackIrecv(OTF2_LocationRef locationID,
 #if NO_COMM_BUILD
 	addEmptyUserEvt(userData);
 #else
-<<<<<<< HEAD
 	if(isGPUDevice == 1)
 	{
 		ld->tasks.push_back(Task());
@@ -812,17 +691,6 @@ callbackIrecv(OTF2_LocationRef locationID,
 		new_task.isNonBlocking = true;;
 		((AllData *)userData)->matchRecvIds[requestID] = ld->tasks.size() - 1;
 	}
-=======
-  ld->tasks.push_back(Task());
-  Task &new_task = ld->tasks[ld->tasks.size() - 1];
-  new_task.execTime = soft_delay_mpi;
-  new_task.event_id = TRACER_USER_EVT;
-  new_task.req_id = requestID;
-  new_task.isNonBlocking = true;;
-  ((AllData *)userData)->matchRecvIds[requestID] = ld->tasks.size() - 1;
-
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
-
 #endif
 	ld->lastLogTime = time;
 	return OTF2_CALLBACK_SUCCESS;
@@ -844,7 +712,6 @@ callbackIrecvCompEvt(OTF2_LocationRef locationID,
 #if NO_COMM_BUILD
 	addEmptyUserEvt(userData);
 #else
-<<<<<<< HEAD
 	AllData *globalData = (AllData *)userData;
 	/*if(isGPUDevice == MPI_DST_BUF_LOCATION)
 	{
@@ -964,38 +831,6 @@ callbackIrecvCompEvt(OTF2_LocationRef locationID,
 		std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
 		
 	}*/
-=======
-  AllData *globalData = (AllData *)userData;
-  ld->tasks.push_back(Task());
-  Task &new_task = ld->tasks[ld->tasks.size() - 1];
-  new_task.execTime = soft_delay_mpi;
-  new_task.event_id = TRACER_RECV_COMP_EVT;
-  Group& group = globalData->groups[globalData->communicators[communicator]];
-  new_task.myEntry.msgId.pe = locationID;
-  new_task.myEntry.msgId.id = msgTag;
-  new_task.myEntry.msgId.size = msgLength;
-  new_task.myEntry.msgId.comm = communicator;
-  new_task.myEntry.msgId.coll_type = -1;
-  new_task.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
-  new_task.myEntry.node = group.members[sender];
-  new_task.myEntry.thread = 0;
-  new_task.isNonBlocking = false;
-  new_task.req_id = requestID;
-
-  std::map<int, int>::iterator it = ((AllData *)userData)->matchRecvIds.find(requestID);
-  assert(it != ((AllData *)userData)->matchRecvIds.end());
-  Task &postTask = ld->tasks[it->second];
-  postTask.event_id = TRACER_RECV_POST_EVT;
-  postTask.myEntry.msgId.pe = locationID;
-  postTask.myEntry.msgId.id = msgTag;
-  postTask.myEntry.msgId.size = msgLength;
-  postTask.myEntry.msgId.comm = communicator;
-  postTask.myEntry.msgId.coll_type = -1;
-  postTask.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
-  postTask.myEntry.node = new_task.myEntry.node;
-  ((AllData *)userData)->matchRecvIds.erase(it);
-
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
 
 #endif
 	ld->lastLogTime = time;
@@ -1043,7 +878,6 @@ callbackCollectiveEnd(OTF2_LocationRef locationID,
 #if NO_COMM_BUILD
 	addEmptyUserEvt(userData);
 #else
-<<<<<<< HEAD
 	AllData *globalData = (AllData *)userData;
 	Group& group = globalData->groups[globalData->communicators[communicator]];
 
@@ -1167,122 +1001,6 @@ callbackCollectiveEnd(OTF2_LocationRef locationID,
 		new_task.myEntry.thread = 0;
 		new_task.isNonBlocking = false;
 	} 
-=======
-  AllData *globalData = (AllData *)userData;
-  Group& group = globalData->groups[globalData->communicators[communicator]];
-
-  // Return without processing for MPI_COMM_SELF groups
-  if( OTF2_GROUP_TYPE_COMM_SELF == group.type ) {
-      ld->lastLogTime = time;
-      return OTF2_CALLBACK_SUCCESS;
-  }
-
-  if(collectiveOp == OTF2_COLLECTIVE_OP_BCAST) {
-    ld->tasks.push_back(Task());
-    Task &new_task = ld->tasks[ld->tasks.size() - 1];
-    new_task.execTime = 0;
-    new_task.event_id = TRACER_COLL_EVT;
-    new_task.myEntry.msgId.pe = group.members[root];
-    new_task.myEntry.msgId.size = sizeReceived;
-    new_task.myEntry.msgId.comm = communicator;
-    new_task.myEntry.msgId.coll_type = collectiveOp;
-    new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-    new_task.myEntry.node = root;
-    new_task.myEntry.thread = 0;
-    new_task.isNonBlocking = false;
-  } else if(collectiveOp == OTF2_COLLECTIVE_OP_REDUCE) {
-    ld->tasks.push_back(Task());
-    Task &new_task = ld->tasks[ld->tasks.size() - 1];
-    new_task.execTime = 0;
-    new_task.event_id = TRACER_COLL_EVT;
-    new_task.myEntry.msgId.pe = group.members[root];
-    new_task.myEntry.msgId.size = sizeSent;
-    new_task.myEntry.msgId.comm = communicator;
-    new_task.myEntry.msgId.coll_type = collectiveOp;
-    new_task.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
-    new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-    new_task.myEntry.node = root;
-    new_task.myEntry.thread = 0;
-    new_task.isNonBlocking = false;
-  } else if(collectiveOp == OTF2_COLLECTIVE_OP_ALLTOALL) {
-    ld->tasks.push_back(Task());
-    Task &new_task = ld->tasks[ld->tasks.size() - 1];
-    new_task.execTime = 0;
-    new_task.event_id = TRACER_COLL_EVT;
-    new_task.myEntry.msgId.size = sizeSent/group.members.size();
-    new_task.myEntry.msgId.comm = communicator;
-    new_task.myEntry.msgId.coll_type = OTF2_COLLECTIVE_OP_ALLTOALL;
-    new_task.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
-    new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-    new_task.myEntry.thread = 0;
-    new_task.isNonBlocking = false;
-  } else if(collectiveOp == OTF2_COLLECTIVE_OP_ALLTOALLV) {
-    ld->tasks.push_back(Task());
-    Task &new_task = ld->tasks[ld->tasks.size() - 1];
-    new_task.execTime = 0;
-    new_task.event_id = TRACER_COLL_EVT;
-    new_task.myEntry.msgId.size = sizeSent/group.members.size();
-    new_task.myEntry.msgId.comm = communicator;
-    new_task.myEntry.msgId.coll_type = OTF2_COLLECTIVE_OP_ALLTOALLV;
-    new_task.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
-    new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-    new_task.myEntry.thread = 0;
-    new_task.isNonBlocking = false;
-  } else if(collectiveOp == OTF2_COLLECTIVE_OP_ALLREDUCE) {
-    ld->tasks.push_back(Task());
-    Task &new_task = ld->tasks[ld->tasks.size() - 1];
-    new_task.execTime = 0;
-    new_task.event_id = TRACER_COLL_EVT;
-    new_task.myEntry.msgId.pe = group.members[0];
-    new_task.myEntry.msgId.size = sizeSent/group.members.size();
-    new_task.myEntry.msgId.comm = communicator;
-    new_task.myEntry.msgId.coll_type = collectiveOp;
-    new_task.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
-    new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-    new_task.myEntry.node = 0;
-    new_task.myEntry.thread = 0;
-    new_task.isNonBlocking = false;
-  } else if(collectiveOp == OTF2_COLLECTIVE_OP_BARRIER) {
-    ld->tasks.push_back(Task());
-    Task &new_task = ld->tasks[ld->tasks.size() - 1];
-    new_task.execTime = 0;
-    new_task.event_id = TRACER_COLL_EVT;
-    new_task.myEntry.msgId.pe = group.members[0];
-    new_task.myEntry.msgId.size = 0;
-    new_task.myEntry.msgId.comm = communicator;
-    new_task.myEntry.msgId.coll_type = OTF2_COLLECTIVE_OP_ALLREDUCE;
-    new_task.myEntry.node = 0;
-    new_task.myEntry.thread = 0;
-    new_task.isNonBlocking = false;
-  } else if(collectiveOp == OTF2_COLLECTIVE_OP_ALLGATHER ||
-            collectiveOp == OTF2_COLLECTIVE_OP_ALLGATHERV) {
-    ld->tasks.push_back(Task());
-    Task &new_task = ld->tasks[ld->tasks.size() - 1];
-    new_task.execTime = 0;
-    new_task.event_id = TRACER_COLL_EVT;
-    new_task.myEntry.msgId.size = sizeReceived/group.members.size();
-    new_task.myEntry.msgId.comm = communicator;
-    new_task.myEntry.msgId.coll_type = OTF2_COLLECTIVE_OP_ALLGATHER;
-    new_task.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
-    new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-    new_task.myEntry.thread = 0;
-    new_task.isNonBlocking = false;
-  } else if(collectiveOp == OTF2_COLLECTIVE_OP_SCATTER) {
-    ld->tasks.push_back(Task());
-    Task &new_task = ld->tasks[ld->tasks.size() - 1];
-    new_task.execTime = 0;
-    new_task.event_id = TRACER_COLL_EVT;
-    new_task.myEntry.msgId.pe = group.members[root];
-    new_task.myEntry.msgId.size = sizeReceived;
-    new_task.myEntry.msgId.comm = communicator;
-    new_task.myEntry.msgId.coll_type = OTF2_COLLECTIVE_OP_SCATTER;
-    new_task.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
-    new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-    new_task.myEntry.node = root;
-    new_task.myEntry.thread = 0;
-    new_task.isNonBlocking = false;
-  } 
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
 #endif
 	ld->lastLogTime = time;
 	return OTF2_CALLBACK_SUCCESS;

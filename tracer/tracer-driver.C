@@ -473,11 +473,7 @@ void proc_init(
     ns->my_pe = new PE();
     tw_stime startTime=0;
 
-<<<<<<< HEAD
     printf("GID of CPU is %d and PE id is : %d and job ID is: %d.\n", lp->gid, ns->my_pe_num, ns->my_job);
-=======
-    printf("GID of CPU is %d and PE id is : %d.\n", lp->gid, ns->my_pe_num);
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
 
     // Each server reads it's full trace
 #if TRACER_BIGSIM_TRACES
@@ -784,42 +780,8 @@ void proc_init_gpu(
     ns->my_pe = new PE();
     tw_stime startTime=0;
 
-<<<<<<< HEAD
     printf("GID of GPU is %d and PE id is : %d and job ID is: %d.\n", lp->gid, ns->my_pe_num, ns->my_job);
     
-=======
-    printf("GID of GPU is %d and PE id is : %d.\n", lp->gid, ns->my_pe_num);
-    
-    // Each server reads it's full trace
-#if TRACER_BIGSIM_TRACES
-    ns->trace_reader = newTraceReader(jobs[ns->my_job].traceDir);
-    int tot=0, totn=0, emPes=0, nwth=0;
-    TraceReader_loadTraceSummary(ns->trace_reader);
-    TraceReader_setOffsets(ns->trace_reader, &(jobs[ns->my_job].offsets));
-
-    TraceReader_readTrace(ns->trace_reader, &tot, &totn, &emPes, &nwth,
-                         ns->my_pe, ns->my_pe_num,  ns->my_job, &startTime);
-#else 
-    //TraceReader_readOTF2Trace(ns->my_pe, ns->my_pe_num, ns->my_job, &startTime);
-#endif
-
-    /* skew each kickoff event slightly to help avoid event ties later on */
-    kickoff_time = startTime + g_tw_lookahead + tw_rand_unif(lp->rng);
-    ns->end_ts = 0;
-    /* maintain message sequencing for MPI */
-    ns->my_pe->sendSeq = new int64_t[jobs[ns->my_job].numRanks];
-    ns->my_pe->recvSeq = new int64_t[jobs[ns->my_job].numRanks];
-    for(int i = 0; i < jobs[ns->my_job].numRanks; i++) {
-      ns->my_pe->sendSeq[i] = ns->my_pe->recvSeq[i] = 0;
-    }
-
-    e = tw_event_new(lp->gid, kickoff_time, lp);
-    m =  (proc_msg*)tw_event_data(e);
-    m->proc_event_type = KICKOFF;
-    /* enqueue KICKOFF event with ROSS */
-    //tw_event_send(e);
-
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
     return;
 }
 
@@ -834,7 +796,6 @@ void proc_event_gpu(
   fflush(stdout);
   switch (m->proc_event_type)
   {
-<<<<<<< HEAD
     case GPU_SEND:
       handle_gpu_send_event(ns, b, m, lp);
       break;
@@ -843,73 +804,6 @@ void proc_event_gpu(
       break;
     case GPU_SEND_DONE:
       handle_gpu_send_done_event(ns, b, m, lp);
-=======
-    case KICKOFF:
-      handle_kickoff_event(ns, b, m, lp);
-      break;
-    case LOCAL:
-      handle_local_event(ns, b, m, lp); 
-      break;
-    case RECV_MSG:
-      handle_recv_event(ns, b, m, lp);
-      break;
-    case BCAST:
-      handle_bcast_event(ns, b, m, lp);
-      break;
-    case EXEC_COMPLETE:
-      handle_exec_event(ns, b, m, lp);
-      break;
-    case SEND_COMP:
-      handle_send_comp_event(ns, b, m, lp);
-      break;
-    case RECV_POST:
-      handle_recv_post_event(ns, b, m, lp);
-      break;
-    case COLL_BCAST:
-      perform_bcast(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_REDUCTION:
-      perform_reduction(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_A2A:
-      perform_a2a(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_A2A_SEND_DONE:
-      handle_a2a_send_comp_event(ns, b, m, lp);
-      break;
-    case COLL_ALLGATHER:
-      perform_allgather(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_ALLGATHER_SEND_DONE:
-      handle_allgather_send_comp_event(ns, b, m, lp);
-      break;
-    case COLL_BRUCK:
-      perform_bruck(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_BRUCK_SEND_DONE:
-      handle_bruck_send_comp_event(ns, b, m, lp);
-      break;
-    case COLL_A2A_BLOCKED:
-      perform_a2a_blocked(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_A2A_BLOCKED_SEND_DONE:
-      handle_a2a_blocked_send_comp_event(ns, b, m, lp);
-      break;
-    case COLL_SCATTER_SMALL:
-      perform_scatter_small(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_SCATTER:
-      perform_scatter(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_SCATTER_SEND_DONE:
-      handle_scatter_send_comp_event(ns, b, m, lp);
-      break;
-    case RECV_COLL_POST:
-      handle_coll_recv_post_event(ns, b, m, lp);
-      break;
-    case COLL_COMPLETE:
-      handle_coll_complete_event(ns, b, m, lp);
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
       break;
     default:
       printf("\n Invalid message type %d event %lld ", 
@@ -926,81 +820,6 @@ void proc_rev_event_gpu(
     proc_msg * m,
     tw_lp * lp)
 {
-<<<<<<< HEAD
-=======
-  switch (m->proc_event_type)
-  {
-    case KICKOFF:
-      handle_kickoff_rev_event(ns, b, m, lp);
-      break;
-    case LOCAL:
-      handle_local_rev_event(ns, b, m, lp);    
-      break;
-    case RECV_MSG:
-      handle_recv_rev_event(ns, b, m, lp);
-      break;
-    case BCAST:
-      handle_bcast_rev_event(ns, b, m, lp);
-      break;
-    case EXEC_COMPLETE:
-      handle_exec_rev_event(ns, b, m, lp);
-      break;
-    case SEND_COMP:
-      handle_send_comp_rev_event(ns, b, m, lp);
-      break;
-    case RECV_POST:
-      handle_recv_post_rev_event(ns, b, m, lp);
-      break;
-    case COLL_BCAST:
-      perform_bcast_rev(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_REDUCTION:
-      perform_reduction_rev(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_A2A:
-      perform_a2a_rev(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_A2A_SEND_DONE:
-      handle_a2a_send_comp_rev_event(ns, b, m, lp);
-      break;
-    case COLL_ALLGATHER:
-      perform_allgather_rev(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_ALLGATHER_SEND_DONE:
-      handle_allgather_send_comp_rev_event(ns, b, m, lp);
-      break;
-    case COLL_BRUCK:
-      perform_bruck_rev(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_BRUCK_SEND_DONE:
-      handle_bruck_send_comp_rev_event(ns, b, m, lp);
-      break;
-    case COLL_A2A_BLOCKED:
-      perform_a2a_blocked_rev(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_A2A_BLOCKED_SEND_DONE:
-      handle_a2a_blocked_send_comp_rev_event(ns, b, m, lp);
-      break;
-    case COLL_SCATTER_SMALL:
-      perform_scatter_small_rev(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_SCATTER:
-      perform_scatter_rev(ns, -1, lp, m, b, 1);
-      break;
-    case COLL_SCATTER_SEND_DONE:
-      handle_scatter_send_comp_rev_event(ns, b, m, lp);
-      break;
-    case RECV_COLL_POST:
-      handle_coll_recv_post_rev_event(ns, b, m, lp);
-      break;
-    case COLL_COMPLETE:
-      handle_coll_complete_rev_event(ns, b, m, lp);
-      break;
-    default:
-      assert(0);
-      break;
-  }
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
   return;
 }
 
@@ -1116,7 +935,6 @@ void handle_kickoff_event(
     }
   
     //Safety check if the pe_to_lpid converter is correct
-<<<<<<< HEAD
     if(ns->pe_type == CPU)
     {
 		
@@ -1128,12 +946,6 @@ void handle_kickoff_event(
         printf("In Kickoff for GPU: PE is %d, GID is %d.\n", my_pe_num, lp->gid);
         assert(pe_to_lpid_gpu(my_pe_num, my_job) == lp->gid);
     }
-=======
-    //if(ns->pe_type == CPU)
-        assert(pe_to_lpid(my_pe_num, my_job) == lp->gid);
-    //if(ns->pe_type == GPU)
-      //  assert(pe_to_lpid_gpu(my_pe_num, my_job) == lp->gid);
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
     assert(PE_is_busy(ns->my_pe) == false);
     TaskPair pair;
     pair.iter = 0; pair.taskid = PE_getFirstTask(ns->my_pe);

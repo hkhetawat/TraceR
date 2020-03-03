@@ -34,7 +34,6 @@ struct MsgID {
 #if TRACER_OTF_TRACES
     int comm, coll_type;
     int64_t seq;
-<<<<<<< HEAD
     int isGPUDirect;
     int isNonBlocking;
     int dest_id;
@@ -43,10 +42,6 @@ struct MsgID {
     int job;
     //int64_t dst_buf_location;
     //int64_t src_buf_location;
-=======
-    int64_t dst_buf_location;
-    int64_t src_buf_location;
->>>>>>> 6eed5aad5ae196d1d7df1cc28fabb8b1ef7e16f0
 #endif
 };
 
