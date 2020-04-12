@@ -770,7 +770,7 @@ callbackIrecvCompEvt(OTF2_LocationRef locationID,
 	/*if(isGPUDevice == 2)
 	  postTask.myEntry.msgId.isGPUDirect = 1;
 	  else */
-	if(MPI_SRC_BUF_LOCATION == 2 || MPI_DST_BUF_LOCATION == 2)
+	if(MPI_SRC_BUF_LOCATION == 2 || MPI_DST_BUF_LOCATION == 2 || force_gpu_direct)
 		postTask.myEntry.msgId.isGPUDirect = 1;
 	postTask.myEntry.node = new_task.myEntry.node;
 	((AllData *)userData)->matchRecvIds.erase(it);
