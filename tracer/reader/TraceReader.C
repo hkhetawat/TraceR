@@ -393,7 +393,7 @@ void TraceReader_readOTF2Trace(PE* pe, int my_pe_num, int my_job, double *startT
   for(int logInd = 0; logInd  < pe->tasksCount; logInd++)
   {
     Task *t = &(ld->tasks[logInd]);
-    printf("Task %d: %d, isGPUDirect: %d, with request ID: %d\n", logInd, t->event_id, t->myEntry.msgId.isGPUDirect, t->req_id);
+    //printf("Task %d: %d, isGPUDirect: %d, with request ID: %d\n", logInd, t->event_id, t->myEntry.msgId.isGPUDirect, t->req_id);
     if(time_replace_limit != -1 && t->execTime >= time_replace_limit) {
       t->execTime = (double)TIME_MULT * time_replace_by;
     } 

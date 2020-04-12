@@ -24,7 +24,6 @@ void handle_gpu_send_event(
     proc_msg * m,
     tw_lp * lp)
 {
-  printf("In GPU_SEND event handler.\n");
   proc_msg gpu_gpu_msg;
   gpu_gpu_msg.proc_event_type = GPU_RECV_DONE;
   gpu_gpu_msg.src = lp->gid;
@@ -35,6 +34,7 @@ void handle_gpu_send_event(
   local_event.proc_event_type = GPU_SEND_DONE;
   local_event.msgId = m->msgId;
   local_event.iteration = m->iteration;
+  printf("%d: In GPU_SEND event handler with taskid: %d, reqid: %d.\n", ns->my_pe_num, local_event.msgId.taskid, local_event.msgId.req_id);
 
   model_net_event(net_id, "gpu_direct", pe_to_lpid_gpu(m->msgId.dest_id, m->msgId.job), m->msgId.size, rdma_delay + nic_delay, sizeof(proc_msg), &gpu_gpu_msg, sizeof(proc_msg), &local_event, lp);
 
@@ -47,22 +47,24 @@ void handle_gpu_send_done_event(
     proc_msg * m,
     tw_lp * lp)
 {
-  printf("In GPU_SEND_DONE event handler.\n");
+    printf("%d: In GPU_SEND_DONE event handler.\n", ns->my_pe_num);
   proc_msg cpu_cntrl_msg;
   if(m->msgId.isNonBlocking)
   {
     cpu_cntrl_msg.proc_event_type = SEND_COMP;
     cpu_cntrl_msg.msgId.id = m->msgId.req_id;
+    cpu_cntrl_msg.iteration = m->iteration;
+     printf("%d: Sending SEND_COMP event with iteration number %d and task_id %d.\n", ns->my_pe_num, cpu_cntrl_msg.iteration, cpu_cntrl_msg.msgId.id);
   }
   else 
   {
     cpu_cntrl_msg.proc_event_type = EXEC_COMPLETE;
     cpu_cntrl_msg.iteration = m->iteration;
     cpu_cntrl_msg.msgId.id = m->msgId.taskid;
-    printf("Sending EXEC_COMPLETE event with iteration number %d and task_id %d.\n", cpu_cntrl_msg.iteration, cpu_cntrl_msg.msgId.id);
+      printf("%d: Sending EXEC_COMPLETE event with iteration number %d and task_id %d.\n", ns->my_pe_num, cpu_cntrl_msg.iteration, cpu_cntrl_msg.msgId.id);
   }
   
-  model_net_event(net_id, "control", pe_to_lpid(ns->my_pe_num, ns->my_job), 16, soft_delay_mpi, sizeof(proc_msg), &cpu_cntrl_msg, 0, NULL, lp); 
+  model_net_event(net_id, "control", pe_to_lpid(ns->my_pe_num, ns->my_job), 16, 0, sizeof(proc_msg), &cpu_cntrl_msg, 0, NULL, lp); 
 
   return;
 }
@@ -74,14 +76,14 @@ void handle_gpu_recv_done_event(
     proc_msg * m,
     tw_lp * lp)
 {
-  printf("In GPU_RECV_DONE event handler.\n");
+    printf("%d: In GPU_RECV_DONE event handler.\n", ns->my_pe_num);
   proc_msg cpu_cntrl_msg;
   cpu_cntrl_msg.proc_event_type = RECV_MSG;
   cpu_cntrl_msg.src = pe_to_lpid(lpid_to_pe(lp->gid), ns->my_job);
   cpu_cntrl_msg.msgId = m->msgId;
   cpu_cntrl_msg.iteration = m->iteration;
   
-  model_net_event(net_id, "control", pe_to_lpid(ns->my_pe_num, ns->my_job), 16, soft_delay_mpi, sizeof(proc_msg), &cpu_cntrl_msg, 0, NULL, lp);
+  model_net_event(net_id, "control", pe_to_lpid(ns->my_pe_num, ns->my_job), 16, 0, sizeof(proc_msg), &cpu_cntrl_msg, 0, NULL, lp);
  
   return;
 }
@@ -98,11 +100,10 @@ void handle_recv_event(
     task_id = PE_findTaskFromMsg(ns->my_pe, &m->msgId);
 #else
 #if DEBUG_PRINT
-    if(ns->my_pe_num == 1024 || ns->my_pe_num == 11788) {
-    printf("%d RECD MSG: %d %d %d %lld\n", 
+    printf("%d: RECD MSG: %d %d %d %lld\n", 
         ns->my_pe_num, m->msgId.pe, m->msgId.id, m->msgId.comm,
         m->msgId.seq);
-    }
+    
 #endif
     MsgKey key(m->msgId.pe, m->msgId.id, m->msgId.comm, m->msgId.seq);
     KeyType::iterator it = ns->my_pe->pendingMsgs.find(key);
@@ -129,7 +130,7 @@ void handle_recv_event(
     int iter = m->iteration;
 #if DEBUG_PRINT
     tw_stime now = tw_now(lp);
-    printf("PE%d: handle_recv_event - received from %d id: %d for task: "
+      printf("%d: handle_recv_event - received from %d id: %d for task: "
         "%d. TIME now:%f.\n", ns->my_pe_num, m->msgId.pe, m->msgId.id,
         task_id, now);
 #endif
@@ -148,9 +149,8 @@ void handle_recv_event(
     }
 #endif
 #if DEBUG_PRINT
-    if(1 || ns->my_pe_num == 1024 || ns->my_pe_num == 11788) {
-    printf("%d Recv  busy %d %d\n", ns->my_pe_num, isBusy, task_id);
-    }
+    printf("%d: Recv  busy %d %d\n", ns->my_pe_num, isBusy, task_id);
+    
 #endif
     m->incremented_flag = isBusy;
     m->executed.taskid = -1;
@@ -190,7 +190,7 @@ void handle_recv_event(
         }
         return;
     }
-    printf("PE%d: Going beyond hash look up on receiving a message %d:%d\n",
+    printf("%d: Going beyond hash look up on receiving a message %d:%d\n",
       lpid_to_pe(lp->gid), m->msgId.pe, m->msgId.id);
     assert(0);
 }
@@ -226,9 +226,8 @@ void handle_recv_rev_event(
     int iter = m->iteration;
     PE_set_busy(ns->my_pe, wasBusy);
 #if DEBUG_PRINT
-    if(1 || ns->my_pe_num == 1024 || ns->my_pe_num == 11788) {
-    printf("%d Recv rev busy %d %d\n", ns->my_pe_num, wasBusy, m->executed.taskid);
-    }
+    printf("%d: Recv rev busy %d %d\n", ns->my_pe_num, wasBusy, m->executed.taskid);
+    
 #endif
 
 #if TRACER_BIGSIM_TRACES
@@ -244,7 +243,7 @@ void handle_recv_rev_event(
 
 #if DEBUG_PRINT
     tw_stime now = tw_now(lp);
-    printf("PE%d: In reverse handler of recv message with id: %d  task_id: %d."
+    printf("%d: In reverse handler of recv message with id: %d  task_id: %d."
     " wasBusy: %d. TIME now:%f\n", ns->my_pe_num, m->msgId.id, task_id,
     wasBusy, now);
 #endif
@@ -296,6 +295,7 @@ void handle_send_comp_event(
 		proc_msg * m,
 		tw_lp * lp)
 {
+    printf("%d: In SEND_COMP_EVENT with msgid: %d.\n", ns->my_pe_num, m->msgId.id);
     std::map<int, int>::iterator it = ns->my_pe->pendingReqs.find(m->msgId.id);
     if(it == ns->my_pe->pendingReqs.end()) {
       b->c1 = 1;
@@ -389,18 +389,20 @@ void delegate_send_msg(proc_state *ns,
     m_local.msgId.id = taskid;
   }
 
+  printf("%d: Taskid is %d, Reqid is %d.\n", ns->my_pe_num, taskid, t->req_id); 
+
   MsgEntry *taskEntry = &t->myEntry;
   if(taskEntry->msgId.isGPUDirect == 0)
   {
-  printf("delegate_send_msg called on source PE %d for destination PE %d.\n", ns->my_pe_num, taskEntry->node);  
-  enqueue_msg(ns, MsgEntry_getSize(taskEntry),
+    printf("%d: Delegate_send_msg called for destination PE %d.\n", ns->my_pe_num, taskEntry->node);  
+    enqueue_msg(ns, MsgEntry_getSize(taskEntry),
       ns->my_pe->currIter, &taskEntry->msgId, taskEntry->msgId.seq,
       pe_to_lpid(taskEntry->node, ns->my_job), nic_delay+rdma_delay+delay, 
       RECV_MSG, &m_local, lp);
   }
   else
   {
-    printf("Delegating send to GPU from source PE %d to destination PE %d.\n", ns->my_pe_num, taskEntry->node); 
+    printf("%d: Delegating send to GPU to destination PE %d with taskid:%d, reqid:%d.\n", ns->my_pe_num, taskEntry->node, taskid, t->req_id); 
     struct proc_msg gpu_cntrl_msg;
     gpu_cntrl_msg.proc_event_type = GPU_SEND;
     gpu_cntrl_msg.src = pe_to_lpid(ns->my_pe_num, ns->my_job);
@@ -411,7 +413,7 @@ void delegate_send_msg(proc_state *ns,
     gpu_cntrl_msg.msgId.req_id = t->req_id;
     gpu_cntrl_msg.msgId.taskid = taskid;
     gpu_cntrl_msg.msgId.job = ns->my_job; 
-    model_net_event(net_id, "control", pe_to_lpid_gpu(ns->my_pe_num, ns->my_job), 16, delay + soft_delay_mpi, sizeof(struct proc_msg), (const void *)&gpu_cntrl_msg, 0, NULL, lp);
+    model_net_event(net_id, "control", pe_to_lpid_gpu(ns->my_pe_num, ns->my_job), 16, delay + gpudirect_delay, sizeof(struct proc_msg), (const void *)&gpu_cntrl_msg, 0, NULL, lp);
   }
 }
 
@@ -456,7 +458,7 @@ tw_stime exec_task(
     tw_stime recvFinishTime = 0;
 #if TRACER_OTF_TRACES
     Task *t = &ns->my_pe->myTasks[task_id.taskid];
-    printf("FounD task for PE: %d, isGPUDirect: %d, event_id: %d.\n", ns->my_pe_num, t->myEntry.msgId.isGPUDirect, t->event_id);
+    printf("%d: FounD task isGPUDirect: %d, event_id: %d.\n", ns->my_pe_num, t->myEntry.msgId.isGPUDirect, t->event_id);
 
     //delegate to routine that handles collectives
     if(t->event_id == TRACER_COLL_EVT) {
@@ -476,11 +478,10 @@ tw_stime exec_task(
       ns->my_pe->pendingRReqs[t->req_id] = seq;
       ns->my_pe->recvSeq[t->myEntry.node]++;
 #if DEBUG_PRINT
-      if(ns->my_pe_num ==  1222 || ns->my_pe_num == 1217) {
-        printf("%d Post Irecv: %d - %d %d %d %lld \n", ns->my_pe_num, 
+        printf("%d: Post Irecv: %d - %d %d %d %lld \n", ns->my_pe_num, 
             t->req_id, t->myEntry.node, t->myEntry.msgId.id,
             t->myEntry.msgId.comm, ns->my_pe->recvSeq[t->myEntry.node]-1);
-      }
+      //}
 #endif
     }
     if((t->event_id == TRACER_RECV_EVT || t->event_id == TRACER_RECV_COMP_EVT) 
@@ -504,11 +505,10 @@ tw_stime exec_task(
         assert(PE_is_busy(ns->my_pe) == false);
         ns->my_pe->pendingMsgs[key].push_back(task_id.taskid);
 #if DEBUG_PRINT
-        if(1 || ns->my_pe_num == 1024 || ns->my_pe_num == 11788) {
-        printf("%d PUSH recv: %d - %d %d %d %lld %lld %d\n", ns->my_pe_num, 
+        printf("%d: PUSH recv: %d - %d %d %d %lld %lld %d\n", ns->my_pe_num, 
             task_id.taskid, t->myEntry.node, t->myEntry.msgId.id,
             t->myEntry.msgId.comm, seq, ns->my_pe->recvSeq[t->myEntry.node]-1, t->event_id == TRACER_RECV_EVT);
-        }
+        
 #endif
         b->c21 = 1;
         if(!needPost) {
@@ -519,11 +519,9 @@ tw_stime exec_task(
       } else {
         b->c22 = 1;
 #if DEBUG_PRINT
-        if(ns->my_pe_num ==  1222 || ns->my_pe_num == 1217) {
-        printf("%d Recv matched: %d - %d %d %d %lld, %lld %d\n", ns->my_pe_num, 
+        printf("%d: Recv matched: %d - %d %d %d %lld, %lld %d\n", ns->my_pe_num, 
             task_id.taskid, t->myEntry.node, t->myEntry.msgId.id,
             t->myEntry.msgId.comm, seq, ns->my_pe->recvSeq[t->myEntry.node]-1, t->event_id == TRACER_RECV_EVT);
-        }
 #endif
         assert(it->second.front() == -1);
         ns->my_pe->pendingMsgs[key].pop_front();
@@ -535,7 +533,7 @@ tw_stime exec_task(
     if(t->myEntry.node != ns->my_pe_num && 
        (t->myEntry.msgId.size > eager_limit || t->myEntry.msgId.isGPUDirect == 1) &&
        (t->event_id == TRACER_RECV_POST_EVT || needPost)) {
-      printf("Control message sent.\n");
+      //printf("Control message sent.\n");
       m->model_net_calls++;
       send_msg(ns, 16, ns->my_pe->currIter, &t->myEntry.msgId, seq,  
         pe_to_lpid(t->myEntry.node, ns->my_job), nic_delay, RECV_POST, lp);
@@ -552,9 +550,8 @@ tw_stime exec_task(
     //Executing the task, set the pe as busy
     PE_set_busy(ns->my_pe, true);
 #if DEBUG_PRINT
-    if(1 || ns->my_pe_num == 1024 || ns->my_pe_num == 11788) {
-      printf("%d Set busy true %d\n", ns->my_pe_num, task_id.taskid);
-    }
+      printf("%d: Set busy true %d\n", ns->my_pe_num, task_id.taskid);
+    
 #endif
     //Mark the execution time of the task
     tw_stime time = PE_getTaskExecTime(ns->my_pe, task_id.taskid);
@@ -571,6 +568,7 @@ tw_stime exec_task(
       MsgEntry *taskEntry = &t->myEntry;
       bool isCopying = true;
       tw_stime copyTime = copy_per_byte * MsgEntry_getSize(taskEntry);
+      tw_stime gpu_copy_time = 0;
       int node = MsgEntry_getNode(taskEntry);
       if((MsgEntry_getSize(taskEntry) > eager_limit || taskEntry->msgId.isGPUDirect == 1) && node != ns->my_pe_num) {
         copyTime = soft_latency;
@@ -584,13 +582,17 @@ tw_stime exec_task(
         sendFinishTime = sendOffset + copyTime;
       } else {
 #if DEBUG_PRINT
-        if(ns->my_pe_num ==  1222 || ns->my_pe_num == 1217) {
-          printf("%d SEND to: %d  %d %d %lld\n", ns->my_pe_num, node, 
+          printf("%d: SEND to: %d  %d %d %lld\n", ns->my_pe_num, node, 
             taskEntry->msgId.id, taskEntry->msgId.comm, ns->my_pe->sendSeq[node]);
-        }
 #endif
 
         if(isCopying) {
+          if(gpu_copy_enabled)
+          {
+            gpu_copy_time = gpu_copy_delay + gpu_copy_per_byte * MsgEntry_getSize(taskEntry);
+            delay += gpu_copy_time;
+          }
+	 printf("%d: Send offset: %f, CopyTime: %f, NICDelay: %f, Delay: %f.\n", ns->my_pe_num, sendOffset, copyTime, nic_delay, delay);
           m->model_net_calls++;
           send_msg(ns, MsgEntry_getSize(taskEntry),
               task_id.iter, &taskEntry->msgId, ns->my_pe->sendSeq[node]++,
@@ -628,7 +630,7 @@ tw_stime exec_task(
            taskEntry->msgId.seq, t->isNonBlocking, t->req_id, b->c26, b->c27, task_id.taskid);
 #endif
           if(!t->isNonBlocking) return 0;
-          sendFinishTime += sendOffset+copyTime+nic_delay;
+          sendFinishTime += sendOffset+copyTime+nic_delay + gpu_copy_time;
         }
       }
     }
@@ -823,6 +825,12 @@ void enqueue_msg(
         proc_msg *m_local,
         tw_lp * lp) {
         proc_msg m_remote;
+
+        if(gpu_copy_enabled)
+        {
+          tw_stime gpu_copy_time = gpu_copy_delay + gpu_copy_per_byte * size;
+          sendOffset += gpu_copy_time;
+        }
 
         m_remote.proc_event_type = evt_type;
         m_remote.src = lp->gid;

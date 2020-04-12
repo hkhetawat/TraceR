@@ -28,7 +28,7 @@
 extern JobInf *jobs;
 extern tw_stime soft_delay_mpi;
 
-uint32_t MPI_SRC_BUF_LOCATION, MPI_DST_BUF_LOCATION, isGPUDevice;
+uint32_t MPI_SRC_BUF_LOCATION, MPI_DST_BUF_LOCATION, isGPUDevice = 1, scale_factor = 1, force_gpu_direct = 0;
 
 	static OTF2_CallbackCode
 callbackDefLocations(void*                 userData,
@@ -246,6 +246,8 @@ callbackEvtBegin( OTF2_LocationRef    location,
 	}
 
 	ld->lastLogTime = time;
+
+
 	return OTF2_CALLBACK_SUCCESS;
 }
 
@@ -294,75 +296,14 @@ callbackSendEvt(OTF2_LocationRef locationID,
 	addEmptyUserEvt(userData);
 #else
 	AllData *globalData = (AllData *)userData;
-/*	if(isGPUDevice == MPI_SRC_BUF_LOCATION)
-	{
+	/*	if(isGPUDevice == MPI_SRC_BUF_LOCATION)
+		{
 		if(isGPUDevice == 2)
 		{
-			ld->tasks.push_back(Task());
-			Task &new_task = ld->tasks[ld->tasks.size() - 1];
-			new_task.execTime = soft_delay_mpi;
-			new_task.event_id = TRACER_WAIT_EVT;
-			Group& group = globalData->groups[globalData->communicators[communicator]];
-			new_task.myEntry.msgId.pe = locationID;
-			new_task.myEntry.msgId.id = msgTag;
-			new_task.myEntry.msgId.size = 1;
-			new_task.myEntry.msgId.comm = communicator;
-			new_task.myEntry.msgId.coll_type = -1;
-			new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-			new_task.myEntry.node = group.members[locationID];
-			new_task.myEntry.thread = 0;
-			new_task.isNonBlocking = false;
-			std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
-			
-		}*/
-		ld->tasks.push_back(Task());
-		Task &new_task = ld->tasks[ld->tasks.size() - 1];
-		new_task.myEntry.msgId.isGPUDirect = 0;
-		new_task.execTime = soft_delay_mpi;
-		new_task.event_id = TRACER_SEND_EVT;
-		Group& group = globalData->groups[globalData->communicators[communicator]];
-		new_task.myEntry.msgId.pe = locationID;
-		new_task.myEntry.msgId.id = msgTag;
-		new_task.myEntry.msgId.size = msgLength;
-		new_task.myEntry.msgId.comm = communicator;
-		new_task.myEntry.msgId.coll_type = -1;
-		/*if(isGPUDevice == 2)
-			new_task.myEntry.msgId.isGPUDirect = 1;
-		else new_task.myEntry.msgId.isGPUDirect = 0;
-		*/
-		//new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-		if(MPI_SRC_BUF_LOCATION == 2 || MPI_DST_BUF_LOCATION == 2)
-			new_task.myEntry.msgId.isGPUDirect = 1;
-		new_task.myEntry.node = group.members[receiver];
-		new_task.myEntry.thread = 0;
-		new_task.isNonBlocking = false;
-		std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<receiver<<"\n";
-		/*if(isGPUDevice == 2)
-		{
-			ld->tasks.push_back(Task());
-			Task &new_task = ld->tasks[ld->tasks.size() - 1];
-			new_task.execTime = soft_delay_mpi;
-			new_task.event_id = TRACER_GPU_CPU_EVT;
-			Group& group = globalData->groups[globalData->communicators[communicator]];
-			new_task.myEntry.msgId.pe = locationID;
-			new_task.myEntry.msgId.id = msgTag;
-			new_task.myEntry.msgId.size = 1;
-			new_task.myEntry.msgId.comm = communicator;
-			new_task.myEntry.msgId.coll_type = -1;
-			new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-			new_task.myEntry.node = group.members[locationID];
-			new_task.myEntry.thread = 0;
-			new_task.isNonBlocking = false;
-			std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
-			
-		}
-	}
-	else if(isGPUDevice == 1 && MPI_SRC_BUF_LOCATION == 2)
-	{
 		ld->tasks.push_back(Task());
 		Task &new_task = ld->tasks[ld->tasks.size() - 1];
 		new_task.execTime = soft_delay_mpi;
-		new_task.event_id = TRACER_CPU_GPU_EVT;
+		new_task.event_id = TRACER_WAIT_EVT;
 		Group& group = globalData->groups[globalData->communicators[communicator]];
 		new_task.myEntry.msgId.pe = locationID;
 		new_task.myEntry.msgId.id = msgTag;
@@ -373,26 +314,87 @@ callbackSendEvt(OTF2_LocationRef locationID,
 		new_task.myEntry.node = group.members[locationID];
 		new_task.myEntry.thread = 0;
 		new_task.isNonBlocking = false;
-		std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
-		
-
-		ld->tasks.push_back(Task());
-		Task &new_task2 = ld->tasks[ld->tasks.size() - 1];
-		new_task2.execTime = soft_delay_mpi;
-		new_task2.event_id = TRACER_WAIT_EVT;
-		group = globalData->groups[globalData->communicators[communicator]];
-		new_task2.myEntry.msgId.pe = locationID;
-		new_task2.myEntry.msgId.id = msgTag;
-		new_task2.myEntry.msgId.size = 1;
-		new_task2.myEntry.msgId.comm = communicator;
-		new_task2.myEntry.msgId.coll_type = -1;
-		new_task2.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-		new_task2.myEntry.node = group.members[locationID];
-		new_task2.myEntry.thread = 0;
-		new_task2.isNonBlocking = false;
 		std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
-		
-	}*/
+
+		}*/
+	ld->tasks.push_back(Task());
+	Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	new_task.myEntry.msgId.isGPUDirect = 0;
+	new_task.execTime = soft_delay_mpi;
+	new_task.event_id = TRACER_SEND_EVT;
+	Group& group = globalData->groups[globalData->communicators[communicator]];
+	new_task.myEntry.msgId.pe = locationID;
+	new_task.myEntry.msgId.id = msgTag;
+	new_task.myEntry.msgId.size = msgLength * scale_factor;
+	new_task.myEntry.msgId.comm = communicator;
+	new_task.myEntry.msgId.coll_type = -1;
+	/*if(isGPUDevice == 2)
+	  new_task.myEntry.msgId.isGPUDirect = 1;
+	  else new_task.myEntry.msgId.isGPUDirect = 0;
+	  */
+	//new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
+	if(MPI_SRC_BUF_LOCATION == 2 || MPI_DST_BUF_LOCATION == 2 || force_gpu_direct)
+		new_task.myEntry.msgId.isGPUDirect = 1;
+	new_task.myEntry.node = group.members[receiver];
+	new_task.myEntry.thread = 0;
+	new_task.isNonBlocking = false;
+	std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<receiver<<"\n";
+	/*if(isGPUDevice == 2)
+	  {
+	  ld->tasks.push_back(Task());
+	  Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	  new_task.execTime = soft_delay_mpi;
+	  new_task.event_id = TRACER_GPU_CPU_EVT;
+	  Group& group = globalData->groups[globalData->communicators[communicator]];
+	  new_task.myEntry.msgId.pe = locationID;
+	  new_task.myEntry.msgId.id = msgTag;
+	  new_task.myEntry.msgId.size = 1;
+	  new_task.myEntry.msgId.comm = communicator;
+	  new_task.myEntry.msgId.coll_type = -1;
+	  new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
+	  new_task.myEntry.node = group.members[locationID];
+	  new_task.myEntry.thread = 0;
+	  new_task.isNonBlocking = false;
+	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+
+	  }
+	  }
+	  else if(isGPUDevice == 1 && MPI_SRC_BUF_LOCATION == 2)
+	  {
+	  ld->tasks.push_back(Task());
+	  Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	  new_task.execTime = soft_delay_mpi;
+	  new_task.event_id = TRACER_CPU_GPU_EVT;
+	  Group& group = globalData->groups[globalData->communicators[communicator]];
+	  new_task.myEntry.msgId.pe = locationID;
+	  new_task.myEntry.msgId.id = msgTag;
+	  new_task.myEntry.msgId.size = 1;
+	  new_task.myEntry.msgId.comm = communicator;
+	  new_task.myEntry.msgId.coll_type = -1;
+	  new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
+	  new_task.myEntry.node = group.members[locationID];
+	  new_task.myEntry.thread = 0;
+	  new_task.isNonBlocking = false;
+	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+
+
+	  ld->tasks.push_back(Task());
+	  Task &new_task2 = ld->tasks[ld->tasks.size() - 1];
+	  new_task2.execTime = soft_delay_mpi;
+	  new_task2.event_id = TRACER_WAIT_EVT;
+	  group = globalData->groups[globalData->communicators[communicator]];
+	  new_task2.myEntry.msgId.pe = locationID;
+	  new_task2.myEntry.msgId.id = msgTag;
+	  new_task2.myEntry.msgId.size = 1;
+	  new_task2.myEntry.msgId.comm = communicator;
+	  new_task2.myEntry.msgId.coll_type = -1;
+	  new_task2.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
+	  new_task2.myEntry.node = group.members[locationID];
+	  new_task2.myEntry.thread = 0;
+	  new_task2.isNonBlocking = false;
+	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
+
+	  }*/
 #endif
 	ld->lastLogTime = time;
 	return OTF2_CALLBACK_SUCCESS;
@@ -415,75 +417,14 @@ callbackIsendEvt(OTF2_LocationRef locationID,
 	addEmptyUserEvt(userData);
 #else
 	AllData *globalData = (AllData *)userData;
-/*	if(isGPUDevice == MPI_SRC_BUF_LOCATION)
-	{
+	/*	if(isGPUDevice == MPI_SRC_BUF_LOCATION)
+		{
 		if(isGPUDevice == 2)
 		{
-			ld->tasks.push_back(Task());
-			Task &new_task = ld->tasks[ld->tasks.size() - 1];
-			new_task.execTime = soft_delay_mpi;
-			new_task.event_id = TRACER_WAIT_EVT;
-			Group& group = globalData->groups[globalData->communicators[communicator]];
-			new_task.myEntry.msgId.pe = locationID;
-			new_task.myEntry.msgId.id = msgTag;
-			new_task.myEntry.msgId.size = 1;
-			new_task.myEntry.msgId.comm = communicator;
-			new_task.myEntry.msgId.coll_type = -1;
-			new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-			new_task.myEntry.node = group.members[locationID];
-			new_task.myEntry.thread = 0;
-			new_task.isNonBlocking = false;
-			std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
-			
-		}*/
-		ld->tasks.push_back(Task());
-		Task &new_task = ld->tasks[ld->tasks.size() - 1];
-		new_task.myEntry.msgId.isGPUDirect = 0;
-		new_task.execTime = soft_delay_mpi;
-		new_task.event_id = TRACER_SEND_EVT;
-		Group& group = globalData->groups[globalData->communicators[communicator]];
-		new_task.myEntry.msgId.pe = locationID;
-		new_task.myEntry.msgId.id = msgTag;
-		new_task.myEntry.msgId.size = msgLength;
-		new_task.myEntry.msgId.comm = communicator;
-		new_task.myEntry.msgId.coll_type = -1;
-		//new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-		/*if(isGPUDevice == 2)
-			new_task.myEntry.msgId.isGPUDirect = 1;
-		else new_task.myEntry.msgId.isGPUDirect = 0;	
-		*/
-		if(MPI_SRC_BUF_LOCATION == 2 || MPI_DST_BUF_LOCATION == 2)
-                        new_task.myEntry.msgId.isGPUDirect = 1;
-		new_task.myEntry.node = group.members[receiver];
-		new_task.myEntry.thread = 0;
-		new_task.isNonBlocking = true;
-		new_task.req_id = requestID;
-		/*if(isGPUDevice == 2)
-		{
-			ld->tasks.push_back(Task());
-			Task &new_task = ld->tasks[ld->tasks.size() - 1];
-			new_task.execTime = soft_delay_mpi;
-			new_task.event_id = TRACER_GPU_CPU_EVT;
-			Group& group = globalData->groups[globalData->communicators[communicator]];
-			new_task.myEntry.msgId.pe = locationID;
-			new_task.myEntry.msgId.id = msgTag;
-			new_task.myEntry.msgId.size = 1;
-			new_task.myEntry.msgId.comm = communicator;
-			new_task.myEntry.msgId.coll_type = -1;
-			new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-			new_task.myEntry.node = group.members[locationID];
-			new_task.myEntry.thread = 0;
-			new_task.isNonBlocking = false;
-			std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
-			
-		}
-	}
-	else if(isGPUDevice == 1 && MPI_SRC_BUF_LOCATION == 2)
-	{
 		ld->tasks.push_back(Task());
 		Task &new_task = ld->tasks[ld->tasks.size() - 1];
 		new_task.execTime = soft_delay_mpi;
-		new_task.event_id = TRACER_CPU_GPU_EVT;
+		new_task.event_id = TRACER_WAIT_EVT;
 		Group& group = globalData->groups[globalData->communicators[communicator]];
 		new_task.myEntry.msgId.pe = locationID;
 		new_task.myEntry.msgId.id = msgTag;
@@ -494,26 +435,87 @@ callbackIsendEvt(OTF2_LocationRef locationID,
 		new_task.myEntry.node = group.members[locationID];
 		new_task.myEntry.thread = 0;
 		new_task.isNonBlocking = false;
-		std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
-
-
-		ld->tasks.push_back(Task());
-		Task &new_task2 = ld->tasks[ld->tasks.size() - 1];
-		new_task2.execTime = soft_delay_mpi;
-		new_task2.event_id = TRACER_WAIT_EVT;
-		group = globalData->groups[globalData->communicators[communicator]];
-		new_task2.myEntry.msgId.pe = locationID;
-		new_task2.myEntry.msgId.id = msgTag;
-		new_task2.myEntry.msgId.size = 1;
-		new_task2.myEntry.msgId.comm = communicator;
-		new_task2.myEntry.msgId.coll_type = -1;
-		new_task2.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
-		new_task2.myEntry.node = group.members[locationID];
-		new_task2.myEntry.thread = 0;
-		new_task2.isNonBlocking = false;
 		std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
-		
-	}*/
+
+		}*/
+	ld->tasks.push_back(Task());
+	Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	new_task.myEntry.msgId.isGPUDirect = 0;
+	new_task.execTime = soft_delay_mpi;
+	new_task.event_id = TRACER_SEND_EVT;
+	Group& group = globalData->groups[globalData->communicators[communicator]];
+	new_task.myEntry.msgId.pe = locationID;
+	new_task.myEntry.msgId.id = msgTag;
+	new_task.myEntry.msgId.size = msgLength * scale_factor;
+	new_task.myEntry.msgId.comm = communicator;
+	new_task.myEntry.msgId.coll_type = -1;
+	//new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
+	/*if(isGPUDevice == 2)
+	  new_task.myEntry.msgId.isGPUDirect = 1;
+	  else new_task.myEntry.msgId.isGPUDirect = 0;	
+	  */
+	if(MPI_SRC_BUF_LOCATION == 2 || MPI_DST_BUF_LOCATION == 2 || force_gpu_direct)
+		new_task.myEntry.msgId.isGPUDirect = 1;
+	new_task.myEntry.node = group.members[receiver];
+	new_task.myEntry.thread = 0;
+	new_task.isNonBlocking = true;
+	new_task.req_id = requestID;
+	/*if(isGPUDevice == 2)
+	  {
+	  ld->tasks.push_back(Task());
+	  Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	  new_task.execTime = soft_delay_mpi;
+	  new_task.event_id = TRACER_GPU_CPU_EVT;
+	  Group& group = globalData->groups[globalData->communicators[communicator]];
+	  new_task.myEntry.msgId.pe = locationID;
+	  new_task.myEntry.msgId.id = msgTag;
+	  new_task.myEntry.msgId.size = 1;
+	  new_task.myEntry.msgId.comm = communicator;
+	  new_task.myEntry.msgId.coll_type = -1;
+	  new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
+	  new_task.myEntry.node = group.members[locationID];
+	  new_task.myEntry.thread = 0;
+	  new_task.isNonBlocking = false;
+	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+
+	  }
+	  }
+	  else if(isGPUDevice == 1 && MPI_SRC_BUF_LOCATION == 2)
+	  {
+	  ld->tasks.push_back(Task());
+	  Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	  new_task.execTime = soft_delay_mpi;
+	  new_task.event_id = TRACER_CPU_GPU_EVT;
+	  Group& group = globalData->groups[globalData->communicators[communicator]];
+	  new_task.myEntry.msgId.pe = locationID;
+	  new_task.myEntry.msgId.id = msgTag;
+	  new_task.myEntry.msgId.size = 1;
+	  new_task.myEntry.msgId.comm = communicator;
+	  new_task.myEntry.msgId.coll_type = -1;
+	  new_task.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
+	  new_task.myEntry.node = group.members[locationID];
+	  new_task.myEntry.thread = 0;
+	  new_task.isNonBlocking = false;
+	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+
+
+	  ld->tasks.push_back(Task());
+	  Task &new_task2 = ld->tasks[ld->tasks.size() - 1];
+	  new_task2.execTime = soft_delay_mpi;
+	  new_task2.event_id = TRACER_WAIT_EVT;
+	  group = globalData->groups[globalData->communicators[communicator]];
+	  new_task2.myEntry.msgId.pe = locationID;
+	  new_task2.myEntry.msgId.id = msgTag;
+	  new_task2.myEntry.msgId.size = 1;
+	  new_task2.myEntry.msgId.comm = communicator;
+	  new_task2.myEntry.msgId.coll_type = -1;
+	  new_task2.myEntry.msgId.src_buf_location = MPI_SRC_BUF_LOCATION;
+	  new_task2.myEntry.node = group.members[locationID];
+	  new_task2.myEntry.thread = 0;
+	  new_task2.isNonBlocking = false;
+	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
+
+	  }*/
 
 #endif
 	ld->lastLogTime = time;
@@ -532,15 +534,12 @@ callbackIsendCompEvt(OTF2_LocationRef locationID,
 #if NO_COMM_BUILD
 	addEmptyUserEvt(userData);
 #else
-	if(isGPUDevice == 1)
-	{
-		ld->tasks.push_back(Task());
-		Task &new_task = ld->tasks[ld->tasks.size() - 1];
-		new_task.myEntry.msgId.isGPUDirect = 0;
-		new_task.execTime = soft_delay_mpi;
-		new_task.event_id = TRACER_SEND_COMP_EVT;
-		new_task.req_id = requestID;
-	}
+	ld->tasks.push_back(Task());
+	Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	new_task.myEntry.msgId.isGPUDirect = 0;
+	new_task.execTime = soft_delay_mpi;
+	new_task.event_id = TRACER_SEND_COMP_EVT;
+	new_task.req_id = requestID;
 
 #endif
 	ld->lastLogTime = time;
@@ -564,104 +563,104 @@ callbackRecvEvt(OTF2_LocationRef locationID,
 #else
 	AllData *globalData = (AllData *)userData;
 	/*if(isGPUDevice == MPI_DST_BUF_LOCATION)
-	{
-		if(isGPUDevice == 2)
-		{
-			ld->tasks.push_back(Task());
-			Task &new_task = ld->tasks[ld->tasks.size() - 1];
-			new_task.execTime = soft_delay_mpi;
-			new_task.event_id = TRACER_WAIT_EVT;
-			Group& group = globalData->groups[globalData->communicators[communicator]];
-			new_task.myEntry.msgId.pe = locationID;
-			new_task.myEntry.msgId.id = msgTag;
-			new_task.myEntry.msgId.size = 1;
-			new_task.myEntry.msgId.comm = communicator;
-			new_task.myEntry.msgId.coll_type = -1;
-			new_task.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
-			new_task.myEntry.node = group.members[locationID];
-			new_task.myEntry.thread = 0;
-			new_task.isNonBlocking = false;
-			std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
-			
-		}*/
-		ld->tasks.push_back(Task());
-		Task &new_task = ld->tasks[ld->tasks.size() - 1];
-		new_task.myEntry.msgId.isGPUDirect = 0;
-		new_task.execTime = soft_delay_mpi;
-		new_task.event_id = TRACER_RECV_EVT;
-		Group& group = globalData->groups[globalData->communicators[communicator]];
-		new_task.myEntry.msgId.pe = locationID;
-		new_task.myEntry.msgId.id = msgTag;
-		new_task.myEntry.msgId.size = msgLength;
-		new_task.myEntry.msgId.comm = communicator;
-		new_task.myEntry.msgId.coll_type = -1;
-		//new_task.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
-/*		if(isGPUDevice == 2)
-			new_task.myEntry.msgId.isGPUDirect = 1;
-		else new_task.myEntry.msgId.isGPUDirect = 0; 
-  */
-                if(MPI_SRC_BUF_LOCATION == 2 || MPI_DST_BUF_LOCATION == 2)
-                        new_task.myEntry.msgId.isGPUDirect = 1;
-		new_task.myEntry.node = group.members[sender];
-		new_task.myEntry.thread = 0;
-		new_task.isNonBlocking = false;
-		std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<sender<<"\n";
-		/*if(isGPUDevice == 2)
-		{
-			ld->tasks.push_back(Task());
-			Task &new_task = ld->tasks[ld->tasks.size() - 1];
-			new_task.execTime = soft_delay_mpi;
-			new_task.event_id = TRACER_GPU_CPU_EVT;
-			Group& group = globalData->groups[globalData->communicators[communicator]];
-			new_task.myEntry.msgId.pe = locationID;
-			new_task.myEntry.msgId.id = msgTag;
-			new_task.myEntry.msgId.size = 1;
-			new_task.myEntry.msgId.comm = communicator;
-			new_task.myEntry.msgId.coll_type = -1;
-			new_task.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
-			new_task.myEntry.node = group.members[locationID];
-			new_task.myEntry.thread = 0;
-			new_task.isNonBlocking = false;
-			std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
-		`	
-		}
-	}
-	else if(isGPUDevice == 1 && MPI_DST_BUF_LOCATION == 2)
-	{
-		ld->tasks.push_back(Task());
-		Task &new_task = ld->tasks[ld->tasks.size() - 1];
-		new_task.execTime = soft_delay_mpi;
-		new_task.event_id = TRACER_CPU_GPU_EVT;
-		Group& group = globalData->groups[globalData->communicators[communicator]];
-		new_task.myEntry.msgId.pe = locationID;
-		new_task.myEntry.msgId.id = msgTag;
-		new_task.myEntry.msgId.size = 1;
-		new_task.myEntry.msgId.comm = communicator;
-		new_task.myEntry.msgId.coll_type = -1;
-		new_task.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
-		new_task.myEntry.node = group.members[locationID];
-		new_task.myEntry.thread = 0;
-		new_task.isNonBlocking = false;
-		std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
-		
+	  {
+	  if(isGPUDevice == 2)
+	  {
+	  ld->tasks.push_back(Task());
+	  Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	  new_task.execTime = soft_delay_mpi;
+	  new_task.event_id = TRACER_WAIT_EVT;
+	  Group& group = globalData->groups[globalData->communicators[communicator]];
+	  new_task.myEntry.msgId.pe = locationID;
+	  new_task.myEntry.msgId.id = msgTag;
+	  new_task.myEntry.msgId.size = 1;
+	  new_task.myEntry.msgId.comm = communicator;
+	  new_task.myEntry.msgId.coll_type = -1;
+	  new_task.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
+	  new_task.myEntry.node = group.members[locationID];
+	  new_task.myEntry.thread = 0;
+	  new_task.isNonBlocking = false;
+	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
 
-		ld->tasks.push_back(Task());
-		Task &new_task2 = ld->tasks[ld->tasks.size() - 1];
-		new_task2.execTime = soft_delay_mpi;
-		new_task2.event_id = TRACER_WAIT_EVT;
-		group = globalData->groups[globalData->communicators[communicator]];
-		new_task2.myEntry.msgId.pe = locationID;
-		new_task2.myEntry.msgId.id = msgTag;
-		new_task2.myEntry.msgId.size = 1;
-		new_task2.myEntry.msgId.comm = communicator;
-		new_task2.myEntry.msgId.coll_type = -1;
-		new_task2.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
-		new_task2.myEntry.node = group.members[locationID];
-		new_task2.myEntry.thread = 0;
-		new_task2.isNonBlocking = false;
-		std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
-		
-	}*/
+	  }*/
+	ld->tasks.push_back(Task());
+	Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	new_task.myEntry.msgId.isGPUDirect = 0;
+	new_task.execTime = soft_delay_mpi;
+	new_task.event_id = TRACER_RECV_EVT;
+	Group& group = globalData->groups[globalData->communicators[communicator]];
+	new_task.myEntry.msgId.pe = locationID;
+	new_task.myEntry.msgId.id = msgTag;
+	new_task.myEntry.msgId.size = msgLength * scale_factor;
+	new_task.myEntry.msgId.comm = communicator;
+	new_task.myEntry.msgId.coll_type = -1;
+	//new_task.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
+	/*		if(isGPUDevice == 2)
+			new_task.myEntry.msgId.isGPUDirect = 1;
+			else new_task.myEntry.msgId.isGPUDirect = 0; 
+			*/
+	if(MPI_SRC_BUF_LOCATION == 2 || MPI_DST_BUF_LOCATION == 2 || force_gpu_direct)
+		new_task.myEntry.msgId.isGPUDirect = 1;
+	new_task.myEntry.node = group.members[sender];
+	new_task.myEntry.thread = 0;
+	new_task.isNonBlocking = false;
+	std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<sender<<"\n";
+	/*if(isGPUDevice == 2)
+	  {
+	  ld->tasks.push_back(Task());
+	  Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	  new_task.execTime = soft_delay_mpi;
+	  new_task.event_id = TRACER_GPU_CPU_EVT;
+	  Group& group = globalData->groups[globalData->communicators[communicator]];
+	  new_task.myEntry.msgId.pe = locationID;
+	  new_task.myEntry.msgId.id = msgTag;
+	  new_task.myEntry.msgId.size = 1;
+	  new_task.myEntry.msgId.comm = communicator;
+	  new_task.myEntry.msgId.coll_type = -1;
+	  new_task.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
+	  new_task.myEntry.node = group.members[locationID];
+	  new_task.myEntry.thread = 0;
+	  new_task.isNonBlocking = false;
+	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+	  `	
+	  }
+	  }
+	  else if(isGPUDevice == 1 && MPI_DST_BUF_LOCATION == 2)
+	  {
+	  ld->tasks.push_back(Task());
+	  Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	  new_task.execTime = soft_delay_mpi;
+	  new_task.event_id = TRACER_CPU_GPU_EVT;
+	  Group& group = globalData->groups[globalData->communicators[communicator]];
+	  new_task.myEntry.msgId.pe = locationID;
+	  new_task.myEntry.msgId.id = msgTag;
+	  new_task.myEntry.msgId.size = 1;
+	  new_task.myEntry.msgId.comm = communicator;
+	  new_task.myEntry.msgId.coll_type = -1;
+	  new_task.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
+	  new_task.myEntry.node = group.members[locationID];
+	  new_task.myEntry.thread = 0;
+	  new_task.isNonBlocking = false;
+	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+
+
+	  ld->tasks.push_back(Task());
+	  Task &new_task2 = ld->tasks[ld->tasks.size() - 1];
+	  new_task2.execTime = soft_delay_mpi;
+	  new_task2.event_id = TRACER_WAIT_EVT;
+	  group = globalData->groups[globalData->communicators[communicator]];
+	  new_task2.myEntry.msgId.pe = locationID;
+	  new_task2.myEntry.msgId.id = msgTag;
+	  new_task2.myEntry.msgId.size = 1;
+	  new_task2.myEntry.msgId.comm = communicator;
+	  new_task2.myEntry.msgId.coll_type = -1;
+	  new_task2.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
+	  new_task2.myEntry.node = group.members[locationID];
+	  new_task2.myEntry.thread = 0;
+	  new_task2.isNonBlocking = false;
+	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
+
+	  }*/
 #endif
 	ld->lastLogTime = time;
 	return OTF2_CALLBACK_SUCCESS;
@@ -714,123 +713,123 @@ callbackIrecvCompEvt(OTF2_LocationRef locationID,
 #else
 	AllData *globalData = (AllData *)userData;
 	/*if(isGPUDevice == MPI_DST_BUF_LOCATION)
-	{
-		if(isGPUDevice == 2)
-		{
-			ld->tasks.push_back(Task());
-			Task &new_task = ld->tasks[ld->tasks.size() - 1];
-			new_task.execTime = soft_delay_mpi;
-			new_task.event_id = TRACER_WAIT_EVT;
-			Group& group = globalData->groups[globalData->communicators[communicator]];
-			new_task.myEntry.msgId.pe = locationID;
-			new_task.myEntry.msgId.id = msgTag;
-			new_task.myEntry.msgId.size = 1;
-			new_task.myEntry.msgId.comm = communicator;
-			new_task.myEntry.msgId.coll_type = -1;
-			new_task.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
-			new_task.myEntry.node = group.members[locationID];
-			new_task.myEntry.thread = 0;
-			new_task.isNonBlocking = false;
-			std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
-			
-		}*/
-		ld->tasks.push_back(Task());
-		Task &new_task = ld->tasks[ld->tasks.size() - 1];
-		new_task.myEntry.msgId.isGPUDirect = 0;
-		new_task.execTime = soft_delay_mpi;
-		new_task.event_id = TRACER_RECV_COMP_EVT;
-		Group& group = globalData->groups[globalData->communicators[communicator]];
-		new_task.myEntry.msgId.pe = locationID;
-		new_task.myEntry.msgId.id = msgTag;
-		new_task.myEntry.msgId.size = msgLength;
-		new_task.myEntry.msgId.comm = communicator;
-		new_task.myEntry.msgId.coll_type = -1;
-		//new_task.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
-/*		if(isGPUDevice == 2)
+	  {
+	  if(isGPUDevice == 2)
+	  {
+	  ld->tasks.push_back(Task());
+	  Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	  new_task.execTime = soft_delay_mpi;
+	  new_task.event_id = TRACER_WAIT_EVT;
+	  Group& group = globalData->groups[globalData->communicators[communicator]];
+	  new_task.myEntry.msgId.pe = locationID;
+	  new_task.myEntry.msgId.id = msgTag;
+	  new_task.myEntry.msgId.size = 1;
+	  new_task.myEntry.msgId.comm = communicator;
+	  new_task.myEntry.msgId.coll_type = -1;
+	  new_task.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
+	  new_task.myEntry.node = group.members[locationID];
+	  new_task.myEntry.thread = 0;
+	  new_task.isNonBlocking = false;
+	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
+
+	  }*/
+	ld->tasks.push_back(Task());
+	Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	new_task.myEntry.msgId.isGPUDirect = 0;
+	new_task.execTime = soft_delay_mpi;
+	new_task.event_id = TRACER_RECV_COMP_EVT;
+	Group& group = globalData->groups[globalData->communicators[communicator]];
+	new_task.myEntry.msgId.pe = locationID;
+	new_task.myEntry.msgId.id = msgTag;
+	new_task.myEntry.msgId.size = msgLength * scale_factor;
+	new_task.myEntry.msgId.comm = communicator;
+	new_task.myEntry.msgId.coll_type = -1;
+	//new_task.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
+	/*		if(isGPUDevice == 2)
 			new_task.myEntry.msgId.isGPUDirect = 1;
-		else new_task.myEntry.msgId.isGPUDirect = 0;
-		*/
-                if(MPI_SRC_BUF_LOCATION == 2 || MPI_DST_BUF_LOCATION == 2)
-                        new_task.myEntry.msgId.isGPUDirect = 1;
-		new_task.myEntry.node = group.members[sender];
-		new_task.myEntry.thread = 0;
-		new_task.isNonBlocking = false;
-		new_task.req_id = requestID;
+			else new_task.myEntry.msgId.isGPUDirect = 0;
+			*/
+	if(MPI_SRC_BUF_LOCATION == 2 || MPI_DST_BUF_LOCATION == 2 || force_gpu_direct)
+		new_task.myEntry.msgId.isGPUDirect = 1;
+	new_task.myEntry.node = group.members[sender];
+	new_task.myEntry.thread = 0;
+	new_task.isNonBlocking = false;
+	new_task.req_id = requestID;
 
-		std::map<int, int>::iterator it = ((AllData *)userData)->matchRecvIds.find(requestID);
-		assert(it != ((AllData *)userData)->matchRecvIds.end());
-		Task &postTask = ld->tasks[it->second];
-		postTask.myEntry.msgId.isGPUDirect = 0;
-		postTask.event_id = TRACER_RECV_POST_EVT;
-		postTask.myEntry.msgId.pe = locationID;
-		postTask.myEntry.msgId.id = msgTag;
-		postTask.myEntry.msgId.size = msgLength;
-		postTask.myEntry.msgId.comm = communicator;
-		postTask.myEntry.msgId.coll_type = -1;
-		//postTask.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
-		/*if(isGPUDevice == 2)
-			postTask.myEntry.msgId.isGPUDirect = 1;
-		else */
-                if(MPI_SRC_BUF_LOCATION == 2 || MPI_DST_BUF_LOCATION == 2)
-			postTask.myEntry.msgId.isGPUDirect = 1;
-		postTask.myEntry.node = new_task.myEntry.node;
-		((AllData *)userData)->matchRecvIds.erase(it);
-		/*if(isGPUDevice == 2)
-		{
-			ld->tasks.push_back(Task());
-			Task &new_task = ld->tasks[ld->tasks.size() - 1];
-			new_task.execTime = soft_delay_mpi;
-			new_task.event_id = TRACER_GPU_CPU_EVT;
-			Group& group = globalData->groups[globalData->communicators[communicator]];
-			new_task.myEntry.msgId.pe = locationID;
-			new_task.myEntry.msgId.id = msgTag;
-			new_task.myEntry.msgId.size = 1;
-			new_task.myEntry.msgId.comm = communicator;
-			new_task.myEntry.msgId.coll_type = -1;
-			new_task.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
-			new_task.myEntry.node = group.members[locationID];
-			new_task.myEntry.thread = 0;
-			new_task.isNonBlocking = false;
-			std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
-			
-		}
-	}
-	else if(isGPUDevice == 1 && MPI_DST_BUF_LOCATION == 2)
-	{
-		ld->tasks.push_back(Task());
-		Task &new_task = ld->tasks[ld->tasks.size() - 1];
-		new_task.execTime = soft_delay_mpi;
-		new_task.event_id = TRACER_CPU_GPU_EVT;
-		Group& group = globalData->groups[globalData->communicators[communicator]];
-		new_task.myEntry.msgId.pe = locationID;
-		new_task.myEntry.msgId.id = msgTag;
-		new_task.myEntry.msgId.size = 1;
-		new_task.myEntry.msgId.comm = communicator;
-		new_task.myEntry.msgId.coll_type = -1;
-		new_task.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
-		new_task.myEntry.node = group.members[locationID];
-		new_task.myEntry.thread = 0;
-		new_task.isNonBlocking = false;
-		std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
-		
+	std::map<int, int>::iterator it = ((AllData *)userData)->matchRecvIds.find(requestID);
+	assert(it != ((AllData *)userData)->matchRecvIds.end());
+	Task &postTask = ld->tasks[it->second];
+	postTask.myEntry.msgId.isGPUDirect = 0;
+	postTask.event_id = TRACER_RECV_POST_EVT;
+	postTask.myEntry.msgId.pe = locationID;
+	postTask.myEntry.msgId.id = msgTag;
+	postTask.myEntry.msgId.size = msgLength * scale_factor;
+	postTask.myEntry.msgId.comm = communicator;
+	postTask.myEntry.msgId.coll_type = -1;
+	//postTask.myEntry.msgId.dst_buf_location = MPI_DST_BUF_LOCATION;
+	/*if(isGPUDevice == 2)
+	  postTask.myEntry.msgId.isGPUDirect = 1;
+	  else */
+	if(MPI_SRC_BUF_LOCATION == 2 || MPI_DST_BUF_LOCATION == 2)
+		postTask.myEntry.msgId.isGPUDirect = 1;
+	postTask.myEntry.node = new_task.myEntry.node;
+	((AllData *)userData)->matchRecvIds.erase(it);
+	/*if(isGPUDevice == 2)
+	  {
+	  ld->tasks.push_back(Task());
+	  Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	  new_task.execTime = soft_delay_mpi;
+	  new_task.event_id = TRACER_GPU_CPU_EVT;
+	  Group& group = globalData->groups[globalData->communicators[communicator]];
+	  new_task.myEntry.msgId.pe = locationID;
+	  new_task.myEntry.msgId.id = msgTag;
+	  new_task.myEntry.msgId.size = 1;
+	  new_task.myEntry.msgId.comm = communicator;
+	  new_task.myEntry.msgId.coll_type = -1;
+	  new_task.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
+	  new_task.myEntry.node = group.members[locationID];
+	  new_task.myEntry.thread = 0;
+	  new_task.isNonBlocking = false;
+	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
 
-		ld->tasks.push_back(Task());
-		Task &new_task2 = ld->tasks[ld->tasks.size() - 1];
-		new_task2.execTime = soft_delay_mpi;
-		new_task2.event_id = TRACER_WAIT_EVT;
-		group = globalData->groups[globalData->communicators[communicator]];
-		new_task2.myEntry.msgId.pe = locationID;
-		new_task2.myEntry.msgId.id = msgTag;
-		new_task2.myEntry.msgId.size = 1;
-		new_task2.myEntry.msgId.comm = communicator;
-		new_task2.myEntry.msgId.coll_type = -1;
-		new_task2.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
-		new_task2.myEntry.node = group.members[locationID];
-		new_task2.myEntry.thread = 0;
-		new_task2.isNonBlocking = false;
-		std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
-		
-	}*/
+	  }
+	  }
+	  else if(isGPUDevice == 1 && MPI_DST_BUF_LOCATION == 2)
+	  {
+	  ld->tasks.push_back(Task());
+	  Task &new_task = ld->tasks[ld->tasks.size() - 1];
+	  new_task.execTime = soft_delay_mpi;
+	  new_task.event_id = TRACER_CPU_GPU_EVT;
+	  Group& group = globalData->groups[globalData->communicators[communicator]];
+	  new_task.myEntry.msgId.pe = locationID;
+	  new_task.myEntry.msgId.id = msgTag;
+	  new_task.myEntry.msgId.size = 1;
+	  new_task.myEntry.msgId.comm = communicator;
+	  new_task.myEntry.msgId.coll_type = -1;
+	  new_task.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
+	  new_task.myEntry.node = group.members[locationID];
+	  new_task.myEntry.thread = 0;
+	  new_task.isNonBlocking = false;
+	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+
+
+	  ld->tasks.push_back(Task());
+	  Task &new_task2 = ld->tasks[ld->tasks.size() - 1];
+	  new_task2.execTime = soft_delay_mpi;
+	  new_task2.event_id = TRACER_WAIT_EVT;
+	  group = globalData->groups[globalData->communicators[communicator]];
+	  new_task2.myEntry.msgId.pe = locationID;
+	  new_task2.myEntry.msgId.id = msgTag;
+	  new_task2.myEntry.msgId.size = 1;
+	  new_task2.myEntry.msgId.comm = communicator;
+	  new_task2.myEntry.msgId.coll_type = -1;
+	  new_task2.myEntry.msgId.src_buf_location = MPI_DST_BUF_LOCATION;
+	  new_task2.myEntry.node = group.members[locationID];
+	  new_task2.myEntry.thread = 0;
+	  new_task2.isNonBlocking = false;
+	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
+
+	  }*/
 
 #endif
 	ld->lastLogTime = time;
@@ -1068,14 +1067,14 @@ OTF2_Reader * readGlobalDefinitions(int jobID, char* tracefileName, AllData *all
 }
 
 void readLocationTasks(int jobID, OTF2_Reader *reader, AllData *allData, 
-		uint32_t loc, LocationData* ld, int GPU)
+		uint32_t loc, LocationData* ld, int gpu_direct_simulation_enabled)
 {
-	isGPUDevice = GPU;
 
-
+	scale_factor = 1;
+	force_gpu_direct = gpu_direct_simulation_enabled;
 	if(isGPUDevice == 2)
 		return;
-	
+
 
 	std::vector<uint64_t>& locations = allData->locations;
 	if(jobs[jobID].localDefs) {

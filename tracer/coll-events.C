@@ -2260,10 +2260,8 @@ int exec_comp(
     if(recv) {
         m->proc_event_type = RECV_MSG;
 #if DEBUG_PRINT
-        if(ns->my_pe_num ==  1222 || ns->my_pe_num == 1217) {
           printf("%d Sending to %d %d %d %lld\n", ns->my_pe_num, ns->my_pe_num,
             m->msgId.id, m->msgId.comm, m->msgId.seq);
-        }
 #endif
     }
     else 
