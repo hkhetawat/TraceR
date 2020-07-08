@@ -314,7 +314,7 @@ callbackSendEvt(OTF2_LocationRef locationID,
 		new_task.myEntry.node = group.members[locationID];
 		new_task.myEntry.thread = 0;
 		new_task.isNonBlocking = false;
-		std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
+//		std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
 
 		}*/
 	ld->tasks.push_back(Task());
@@ -338,7 +338,7 @@ callbackSendEvt(OTF2_LocationRef locationID,
 	new_task.myEntry.node = group.members[receiver];
 	new_task.myEntry.thread = 0;
 	new_task.isNonBlocking = false;
-	std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<receiver<<"\n";
+//	std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<receiver<<"\n";
 	/*if(isGPUDevice == 2)
 	  {
 	  ld->tasks.push_back(Task());
@@ -355,7 +355,7 @@ callbackSendEvt(OTF2_LocationRef locationID,
 	  new_task.myEntry.node = group.members[locationID];
 	  new_task.myEntry.thread = 0;
 	  new_task.isNonBlocking = false;
-	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+//	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
 
 	  }
 	  }
@@ -375,7 +375,7 @@ callbackSendEvt(OTF2_LocationRef locationID,
 	  new_task.myEntry.node = group.members[locationID];
 	  new_task.myEntry.thread = 0;
 	  new_task.isNonBlocking = false;
-	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+//	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
 
 
 	  ld->tasks.push_back(Task());
@@ -392,7 +392,7 @@ callbackSendEvt(OTF2_LocationRef locationID,
 	  new_task2.myEntry.node = group.members[locationID];
 	  new_task2.myEntry.thread = 0;
 	  new_task2.isNonBlocking = false;
-	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
+//	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
 
 	  }*/
 #endif
@@ -435,7 +435,7 @@ callbackIsendEvt(OTF2_LocationRef locationID,
 		new_task.myEntry.node = group.members[locationID];
 		new_task.myEntry.thread = 0;
 		new_task.isNonBlocking = false;
-		std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
+//		std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
 
 		}*/
 	ld->tasks.push_back(Task());
@@ -476,7 +476,7 @@ callbackIsendEvt(OTF2_LocationRef locationID,
 	  new_task.myEntry.node = group.members[locationID];
 	  new_task.myEntry.thread = 0;
 	  new_task.isNonBlocking = false;
-	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+//	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
 
 	  }
 	  }
@@ -496,7 +496,7 @@ callbackIsendEvt(OTF2_LocationRef locationID,
 	  new_task.myEntry.node = group.members[locationID];
 	  new_task.myEntry.thread = 0;
 	  new_task.isNonBlocking = false;
-	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+//	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
 
 
 	  ld->tasks.push_back(Task());
@@ -513,7 +513,7 @@ callbackIsendEvt(OTF2_LocationRef locationID,
 	  new_task2.myEntry.node = group.members[locationID];
 	  new_task2.myEntry.thread = 0;
 	  new_task2.isNonBlocking = false;
-	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
+//	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_SRC_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
 
 	  }*/
 
@@ -580,7 +580,7 @@ callbackRecvEvt(OTF2_LocationRef locationID,
 	  new_task.myEntry.node = group.members[locationID];
 	  new_task.myEntry.thread = 0;
 	  new_task.isNonBlocking = false;
-	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
+//	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
 
 	  }*/
 	ld->tasks.push_back(Task());
@@ -604,7 +604,7 @@ callbackRecvEvt(OTF2_LocationRef locationID,
 	new_task.myEntry.node = group.members[sender];
 	new_task.myEntry.thread = 0;
 	new_task.isNonBlocking = false;
-	std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<sender<<"\n";
+//	std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<sender<<"\n";
 	/*if(isGPUDevice == 2)
 	  {
 	  ld->tasks.push_back(Task());
@@ -621,7 +621,7 @@ callbackRecvEvt(OTF2_LocationRef locationID,
 	  new_task.myEntry.node = group.members[locationID];
 	  new_task.myEntry.thread = 0;
 	  new_task.isNonBlocking = false;
-	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+//	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
 	  `	
 	  }
 	  }
@@ -641,7 +641,7 @@ callbackRecvEvt(OTF2_LocationRef locationID,
 	  new_task.myEntry.node = group.members[locationID];
 	  new_task.myEntry.thread = 0;
 	  new_task.isNonBlocking = false;
-	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+//	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
 
 
 	  ld->tasks.push_back(Task());
@@ -658,7 +658,7 @@ callbackRecvEvt(OTF2_LocationRef locationID,
 	  new_task2.myEntry.node = group.members[locationID];
 	  new_task2.myEntry.thread = 0;
 	  new_task2.isNonBlocking = false;
-	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
+//	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
 
 	  }*/
 #endif
@@ -730,7 +730,7 @@ callbackIrecvCompEvt(OTF2_LocationRef locationID,
 	  new_task.myEntry.node = group.members[locationID];
 	  new_task.myEntry.thread = 0;
 	  new_task.isNonBlocking = false;
-	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
+//	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
 
 	  }*/
 	ld->tasks.push_back(Task());
@@ -790,7 +790,7 @@ callbackIrecvCompEvt(OTF2_LocationRef locationID,
 	  new_task.myEntry.node = group.members[locationID];
 	  new_task.myEntry.thread = 0;
 	  new_task.isNonBlocking = false;
-	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+//	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
 
 	  }
 	  }
@@ -810,7 +810,7 @@ callbackIrecvCompEvt(OTF2_LocationRef locationID,
 	  new_task.myEntry.node = group.members[locationID];
 	  new_task.myEntry.thread = 0;
 	  new_task.isNonBlocking = false;
-	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
+//	  std::cout<<"SEND - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", RECIEVER: "<<locationID<<"\n";
 
 
 	  ld->tasks.push_back(Task());
@@ -827,7 +827,7 @@ callbackIrecvCompEvt(OTF2_LocationRef locationID,
 	  new_task2.myEntry.node = group.members[locationID];
 	  new_task2.myEntry.thread = 0;
 	  new_task2.isNonBlocking = false;
-	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
+//	  std::cout<<"RECV - LocationID: "<<locationID<<", BUF_LOCATION: "<<MPI_DST_BUF_LOCATION<<", SENDER: "<<locationID<<"\n";
 
 	  }*/
 
@@ -1067,10 +1067,10 @@ OTF2_Reader * readGlobalDefinitions(int jobID, char* tracefileName, AllData *all
 }
 
 void readLocationTasks(int jobID, OTF2_Reader *reader, AllData *allData, 
-		uint32_t loc, LocationData* ld, int gpu_direct_simulation_enabled)
+		uint32_t loc, LocationData* ld, int gpu_direct_simulation_enabled, int scaling)
 {
 
-	scale_factor = 1;
+	scale_factor = scaling;
 	force_gpu_direct = gpu_direct_simulation_enabled;
 	if(isGPUDevice == 2)
 		return;

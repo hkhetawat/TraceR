@@ -40,6 +40,15 @@ typedef struct CoreInf {
     int mapsTo, jobID;
 } CoreInf;
 
+/* stores mapping of core to Communication Time and Computation Time */
+typedef struct TimeInfo{
+    int jobID;
+    int rank;
+    tw_stime comm_time;
+    tw_stime comp_time;
+} TimeInfo;
+
+
 enum PE_Type
 {
     CPU = 1,
@@ -51,6 +60,11 @@ struct proc_state
 {
     tw_stime start_ts;  /* time when first event is processed */
     tw_stime end_ts;    /* time when last event is processed */
+    tw_stime computation_t; /* store time spend in computation*/
+    int region_start;/* flag to mark the start of a region*/
+    int region_end;/* flag to mark end of a region*/
+    tw_stime region_start_sim_time;/* store current simulation time when the region starts*/
+    tw_stime region_end_sim_time;/* store current simulation time when region ends*/
     PE* my_pe;          /* stores all core information */
     enum PE_Type pe_type; /* stores the type of PE */
 #if TRACER_BIGSIM_TRACES
@@ -64,11 +78,15 @@ extern JobInf *jobs;
 extern tw_stime soft_delay_mpi;
 extern tw_stime nic_delay;
 extern tw_stime rdma_delay;
-
+extern tw_stime gpudirect_delay;
 extern int net_id;
 extern unsigned int print_frequency;
 extern double copy_per_byte;
 extern double eager_limit;
+extern int gpu_copy_enabled;
+extern int gpu_direct_simulation_enabled;
+extern tw_stime gpu_copy_delay;
+extern double gpu_copy_per_byte;
 
 
 /* types of events that will constitute ROSS event requests */

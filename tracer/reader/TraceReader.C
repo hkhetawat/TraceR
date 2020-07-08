@@ -333,13 +333,13 @@ void TraceReader::setTaskFromLog(Task *t, BgTimeLog* bglog, int taskPE,
 
 #elif TRACER_OTF_TRACES
 #include "otf2_reader.h"
-void TraceReader_readOTF2Trace(PE* pe, int my_pe_num, int my_job, double *startTime, int GPU) {
+void TraceReader_readOTF2Trace(PE* pe, int my_pe_num, int my_job, double *startTime, int GPU, int scale) {
   pe->myNum = my_pe_num;
   pe->jobNum = my_job;
   LocationData *ld = new LocationData;
   
   readLocationTasks(my_job, jobs[my_job].reader, jobs[my_job].allData,
-      my_pe_num, ld, GPU);
+      my_pe_num, ld, GPU, scale);
 
   pe->myTasks = &(ld->tasks[0]);
   pe->tasksCount = ld->tasks.size();

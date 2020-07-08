@@ -91,7 +91,7 @@ OTF2_Reader * readGlobalDefinitions(int jobID, char* tracefileName,
   AllData *allData);
 
 void readLocationTasks(int jobID, OTF2_Reader *reader, AllData *allData, 
-  uint32_t loc, LocationData* ld, int gpu_direct_enable_simulation);
+  uint32_t loc, LocationData* ld, int gpu_direct_enable_simulation, int scaling);
 
 void closeReader(OTF2_Reader *reader);
 #endif

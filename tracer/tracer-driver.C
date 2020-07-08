@@ -37,19 +37,27 @@ extern "C" {
 }
 
 #include "tracer-driver.h"
-#define DEBUG_PRINT 1
+//#define DEBUG_PRINT 1
 
 char tracer_input[256]; /* filename for tracer input file */
 
 CoreInf *global_rank;   /* core to job ID and process ID */
+TimeInfo *time_rank;
 JobInf *jobs;
 int default_mapping;
 int total_ranks;
 tw_stime *jobTimes;
+tw_stime *commTimes;
+tw_stime *compTimes;
 int num_jobs = 0;
 tw_stime soft_delay_mpi = 100;
 tw_stime nic_delay = 400;
 tw_stime rdma_delay = 1000;
+tw_stime gpudirect_delay = 2500;
+tw_stime gpu_copy_delay = 20000;
+int gpu_copy_enabled = 0;
+int gpu_direct_simulation_enabled = 0;
+double gpu_copy_per_byte = 0.14;
 
 int net_id = 0;
 int num_servers = 0;
@@ -63,6 +71,7 @@ double copy_per_byte = 0.0;
 double eager_limit = 8192;
 int dump_topo_only = 0;
 int rank;
+int scale = 1;
 
 #define DEBUG_PRINT 0
 
@@ -195,6 +204,40 @@ int main(int argc, char **argv)
     if(!rank) 
       printf("Eager limit is %f bytes\n", eager_limit);
 
+    configuration_get_value_double(&config, "PARAMS", "gpudirect_delay", NULL,
+        &gpudirect_delay);      /* message size threshold for switch from eager to
+                               rendezvous */
+    if(!rank) 
+      printf("GPUDirect delay is %f ns\n", gpudirect_delay);
+
+    configuration_get_value_int(&config, "PARAMS", "scaling", NULL, &scale);
+    printf("Scaling is %d.\n", scale);
+
+    configuration_get_value_double(&config, "PARAMS", "gpu_copy_delay", NULL,
+        &gpu_copy_delay);      /* message size threshold for switch from eager to
+                               rendezvous */
+    if(!rank) 
+      printf("GPU Copy delay is %f ns\n", gpu_copy_delay);
+
+    configuration_get_value_double(&config, "PARAMS", "gpu_copy_per_byte", NULL,
+        &gpu_copy_per_byte);      /* message size threshold for switch from eager to
+                               rendezvous */
+    if(!rank) 
+      printf("GPU Copy per byte is %f ns\n", gpu_copy_per_byte);
+
+    configuration_get_value_int(&config, "PARAMS", "gpu_copy_enabled", NULL,
+        &gpu_copy_enabled);      /* message size threshold for switch from eager to
+                               rendezvous */
+    if(!rank) 
+      printf("GPU Copy Enabled is %d ns\n", gpu_copy_enabled);
+
+    configuration_get_value_int(&config, "PARAMS", "gpu_direct_simulation_enabled", NULL,
+        &gpu_direct_simulation_enabled);      /* message size threshold for switch from eager to
+                               rendezvous */
+    if(!rank) 
+      printf("GPUDirect Simulation Enabled is %d ns\n", gpu_direct_simulation_enabled);
+
+
     int ret;
     /* set up the output directory */
     if(lp_io_dir[0]) {
@@ -222,6 +265,16 @@ int main(int argc, char **argv)
         global_rank[i].mapsTo = -1;
         global_rank[i].jobID = -1;
     }
+
+    time_rank = (TimeInfo*) malloc(num_servers * sizeof(TimeInfo));
+
+    for(int i = 0; i < num_servers; i++) {
+        time_rank[i].jobID = -1;
+        time_rank[i].rank = -1;
+        time_rank[i].comm_time = 0;
+        time_rank[i].comp_time = 0;
+    }
+
 
     /* read in the mapping file and populating global_rank */
     if(dump_topo_only || strcmp("NA", globalIn) == 0) {
@@ -255,7 +308,10 @@ int main(int argc, char **argv)
     fscanf(jobIn, "%d", &num_jobs);    /* number of jobs */
     jobs = (JobInf*) malloc(num_jobs * sizeof(JobInf));
     jobTimes = (tw_stime*) malloc(num_jobs * sizeof(tw_stime));
+    compTimes = (tw_stime*) malloc(num_jobs * sizeof(tw_stime));
+    commTimes = (tw_stime*) malloc(num_jobs * sizeof(tw_stime));
     total_ranks = 0;
+
 
     /* read per job information */
     for(int i = 0; i < num_jobs; i++) {
@@ -273,6 +329,8 @@ int main(int argc, char **argv)
         jobs[i].rankMap = (int*) malloc(jobs[i].numRanks * sizeof(int));
         jobs[i].skipMsgId = -1;
         jobTimes[i] = 0;
+        compTimes[i] = 0;
+        commTimes[i] = 0;
         if(!rank) {
           printf("Job %d - ranks %d, trace folder %s, rank file %s, iters %d\n",
             i, jobs[i].numRanks, jobs[i].traceDir, jobs[i].map_file, jobs[i].numIters);
@@ -420,6 +478,18 @@ int main(int argc, char **argv)
         for(int i = 0; i < num_jobs; i++) {
             printf("Job %d Time %f s\n", i, ns_to_s(jobTimesMax[i]));
         }
+	for (int i = 0; i < num_servers; i++){
+		printf("Job %d Rank %d Comp Time %f Comm Time %f\n", time_rank[i].jobID, time_rank[i].rank, time_rank[i].comp_time, time_rank[i].comm_time);
+	}
+	for (int i = 0; i < num_servers; i++){
+		if (time_rank[i].jobID >= 0){
+                        commTimes[time_rank[i].jobID] += time_rank[i].comm_time;
+                        compTimes[time_rank[i].jobID] += time_rank[i].comp_time;       
+                }
+	}
+	for (int i = 0; i < num_jobs; i++){
+		printf("Job[%d] : Communication Time %f, Computation Time %f\n", i, commTimes[i], compTimes[i]);
+	}
     }
     
     model_net_report_stats(net_id);
@@ -473,7 +543,7 @@ void proc_init(
     ns->my_pe = new PE();
     tw_stime startTime=0;
 
-    printf("GID of CPU is %d and PE id is : %d and job ID is: %d.\n", lp->gid, ns->my_pe_num, ns->my_job);
+    //printf("%d: GID of CPU is %d and job ID is: %d.\n", ns->my_pe_num, lp->gid, ns->my_job);
 
     // Each server reads it's full trace
 #if TRACER_BIGSIM_TRACES
@@ -485,12 +555,25 @@ void proc_init(
     TraceReader_readTrace(ns->trace_reader, &tot, &totn, &emPes, &nwth,
                          ns->my_pe, ns->my_pe_num,  ns->my_job, &startTime);
 #else 
-    TraceReader_readOTF2Trace(ns->my_pe, ns->my_pe_num, ns->my_job, &startTime, 1);
+    TraceReader_readOTF2Trace(ns->my_pe, ns->my_pe_num, ns->my_job, &startTime, gpu_direct_simulation_enabled, scale);
 #endif
 
     /* skew each kickoff event slightly to help avoid event ties later on */
     kickoff_time = startTime + g_tw_lookahead + tw_rand_unif(lp->rng);
     ns->end_ts = 0;
+
+    /* Initialize net time spend in computation by a processes to 0*/
+    ns->computation_t = 0;
+    /* Flag to indicate the start of a region*/
+    ns->region_start = 0;
+    /* Flag to indicate the end of a region*/
+    ns->region_end = 0;
+
+    /* Initialize simulation time during start of a region to 0*/
+    ns->region_start_sim_time = 0;
+    /* Initialize simulation time during end of a region to 0*/
+    ns->region_end_sim_time = 0;
+
     /* maintain message sequencing for MPI */
     ns->my_pe->sendSeq = new int64_t[jobs[ns->my_job].numRanks];
     ns->my_pe->recvSeq = new int64_t[jobs[ns->my_job].numRanks];
@@ -704,11 +787,19 @@ void proc_finalize(
     if(dump_topo_only) return;
 
     tw_stime jobTime = ns->end_ts - ns->start_ts;
-    tw_stime finalTime = tw_now(lp);
+
+    tw_stime commTime = ((ns->region_end_sim_time - ns->region_start_sim_time) - ns->computation_t);
+
+    time_rank[ns->my_pe_num * (ns->my_job + 1)].jobID = ns->my_job;
+    time_rank[ns->my_pe_num * (ns->my_job + 1)].rank = ns->my_pe_num;
+    time_rank[ns->my_pe_num * (ns->my_job + 1)].comp_time = ns->computation_t;
+    time_rank[ns->my_pe_num * (ns->my_job + 1)].comm_time = commTime;
+
 
     if(lpid_to_pe(lp->gid) == 0)
         printf("Job[%d]PE[%d]: FINALIZE in %f seconds.\n", ns->my_job,
           ns->my_pe_num, ns_to_s(tw_now(lp)-ns->start_ts));
+
 
 #if TRACER_OTF_TRACES
     PE_printStat(ns->my_pe, -1);
@@ -780,7 +871,7 @@ void proc_init_gpu(
     ns->my_pe = new PE();
     tw_stime startTime=0;
 
-    printf("GID of GPU is %d and PE id is : %d and job ID is: %d.\n", lp->gid, ns->my_pe_num, ns->my_job);
+    //printf("%d: GID of GPU is %d and job ID is: %d.\n", ns->my_pe_num, lp->gid, ns->my_job);
     
     return;
 }
@@ -925,7 +1016,7 @@ void handle_kickoff_event(
 
     int my_pe_num = ns->my_pe_num;
     int my_job = ns->my_job;
-    printf("In handle Kickoff for pe num %d and pe type %d\n", my_pe_num, ns->pe_type);
+    //printf("In handle Kickoff for pe num %d and pe type %d\n", my_pe_num, ns->pe_type);
     clock_t time_till_now = (double)(clock()-ns->sim_start)/CLOCKS_PER_SEC;
     if(my_pe_num == 0 && (my_job == 0 || my_job == num_jobs - 1)) {
         printf("PE%d - LP_GID:%d : START SIMULATION, TASKS COUNT: %d, FIRST "
@@ -938,12 +1029,12 @@ void handle_kickoff_event(
     if(ns->pe_type == CPU)
     {
 		
-        printf("In Kickoff for CPU: PE is %d, GID is %d.\n", my_pe_num, lp->gid);
+        //printf("%d: In Kickoff for CPU: GID is %d.\n", my_pe_num, lp->gid);
         assert(pe_to_lpid(my_pe_num, my_job) == lp->gid);
     }
     if(ns->pe_type == GPU)
     {
-        printf("In Kickoff for GPU: PE is %d, GID is %d.\n", my_pe_num, lp->gid);
+//        printf("%d: In Kickoff for GPU: GID is %d.\n", my_pe_num, lp->gid);
         assert(pe_to_lpid_gpu(my_pe_num, my_job) == lp->gid);
     }
     assert(PE_is_busy(ns->my_pe) == false);
@@ -962,7 +1053,7 @@ void handle_kickoff_rev_event(
 {
 #if DEBUG_PRINT
     tw_stime now = tw_now(lp);
-    printf("PE%d: handle_kickoff_rev_event. TIME now:%f.\n", ns->my_pe_num, now);
+    printf("%d: handle_kickoff_rev_event. TIME now:%f.\n", ns->my_pe_num, now);
 #endif
     PE_set_busy(ns->my_pe, false);
     TaskPair pair;
@@ -998,13 +1089,12 @@ void handle_exec_event(
     if(task_id != ns->my_pe->currentTask || 
        PE_get_taskDone(ns->my_pe, iter, task_id)) {
       b->c2 = 1;
+      //printf("%d: Returning from exec_event.\n", ns->my_pe_num);
       return;
     }
     PE_set_busy(ns->my_pe, false);
 #if DEBUG_PRINT
-    if(1 || ns->my_pe_num == 1024 || ns->my_pe_num == 11788) {
       printf("%d Set busy false %d\n", ns->my_pe_num, task_id);
-    }
 #endif
     //Mark the task as done
     PE_set_taskDone(ns->my_pe, iter, task_id, true);
@@ -1079,13 +1169,11 @@ void handle_exec_rev_event(
     //Reverse the state: set the PE as busy, task is not completed yet
     PE_set_busy(ns->my_pe, true);
 #if DEBUG_PRINT
-    if(1 || ns->my_pe_num == 1024 || ns->my_pe_num == 11788) {
       printf("%d Rev Set busy true %d\n", ns->my_pe_num, task_id);
-    }
 #endif
 
 #if DEBUG_PRINT
-    printf("PE%d: In reverse handler of exec task with task_id: %d\n",
+    printf("%d: In reverse handler of exec task with task_id: %d\n",
     ns->my_pe_num, task_id);
 #endif
     
