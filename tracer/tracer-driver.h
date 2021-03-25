@@ -116,7 +116,17 @@ enum proc_event
     COLL_COMPLETE,       /* collective completion event */
     GPU_SEND,
     GPU_RECV_DONE,
-    GPU_SEND_DONE
+    GPU_SEND_DONE,
+    COLL_BCAST_CPU_GPU,
+    COLL_BCAST_GPU_GPU,
+    COLL_REDUCTION_CPU_GPU,
+    COLL_REDUCTION_GPU_GPU,
+    COLL_A2A_CPU_GPU,
+    COLL_A2A_GPU_GPU,
+    COLL_A2A_SEND_DONE_GPU,
+    COLL_ALLGATHER_CPU_GPU,
+    COLL_ALLGATHER_GPU_GPU,
+    COLL_ALLGATHER_SEND_DONE_GPU
 };
 
 /* Tracer's part of the ROSS message */
@@ -235,6 +245,56 @@ void handle_gpu_send_event(
     tw_bf * b,
     proc_msg * m,
    tw_lp * lp);
+void handle_gpu_bcast_cpu_gpu_event(
+    proc_state * ns,
+    tw_bf * b,
+    proc_msg * m,
+   tw_lp * lp);
+void handle_gpu_bcast_gpu_gpu_event(
+    proc_state * ns,
+    tw_bf * b,
+    proc_msg * m,
+   tw_lp * lp);
+void handle_gpu_reduction_cpu_gpu_event(
+    proc_state *ns,
+    tw_bf *b,
+    proc_msg *m,
+   tw_lp *lp);
+void handle_gpu_reduction_gpu_gpu_event(
+    proc_state *ns,
+    tw_bf *b,
+    proc_msg *m,
+   tw_lp *lp);
+void handle_gpu_allgather_cpu_gpu_event(
+    proc_state *ns,
+    tw_bf *b,
+    proc_msg *m,
+   tw_lp *lp);
+void handle_gpu_allgather_gpu_gpu_event(
+    proc_state *ns,
+    tw_bf *b,
+    proc_msg *m,
+   tw_lp *lp);
+void handle_gpu_allgather_send_done_event(
+    proc_state *ns,
+    tw_bf *b,
+    proc_msg *m,
+   tw_lp *lp);
+void handle_gpu_a2a_cpu_gpu_event(
+    proc_state *ns,
+    tw_bf *b,
+    proc_msg *m,
+   tw_lp *lp);
+void handle_gpu_a2a_gpu_gpu_event(
+    proc_state *ns,
+    tw_bf *b,
+    proc_msg *m,
+   tw_lp *lp);
+void handle_gpu_a2a_send_done_event(
+    proc_state *ns,
+    tw_bf *b,
+    proc_msg *m,
+   tw_lp *lp);
 void handle_recv_event(
     proc_state * ns,
     tw_bf * b,

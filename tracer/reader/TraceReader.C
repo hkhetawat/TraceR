@@ -388,7 +388,6 @@ void TraceReader_readOTF2Trace(PE* pe, int my_pe_num, int my_job, double *startT
     }
   }
 
-  printf("Tasks are: \n");
 
   for(int logInd = 0; logInd  < pe->tasksCount; logInd++)
   {

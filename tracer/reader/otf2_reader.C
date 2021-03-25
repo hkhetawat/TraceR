@@ -891,6 +891,8 @@ callbackCollectiveEnd(OTF2_LocationRef locationID,
 		ld->tasks.push_back(Task());
 		Task &new_task = ld->tasks[ld->tasks.size() - 1];
 		new_task.myEntry.msgId.isGPUDirect = 0;
+		if (force_gpu_direct)
+			new_task.myEntry.msgId.isGPUDirect = 1;
 		new_task.execTime = 0;
 		new_task.event_id = TRACER_COLL_EVT;
 		new_task.myEntry.msgId.pe = group.members[root];
@@ -905,6 +907,8 @@ callbackCollectiveEnd(OTF2_LocationRef locationID,
 		ld->tasks.push_back(Task());
 		Task &new_task = ld->tasks[ld->tasks.size() - 1];
 		new_task.myEntry.msgId.isGPUDirect = 0;
+		if (force_gpu_direct)
+			new_task.myEntry.msgId.isGPUDirect = 1;
 		new_task.execTime = 0;
 		new_task.event_id = TRACER_COLL_EVT;
 		new_task.myEntry.msgId.pe = group.members[root];
@@ -920,6 +924,8 @@ callbackCollectiveEnd(OTF2_LocationRef locationID,
 		ld->tasks.push_back(Task());
 		Task &new_task = ld->tasks[ld->tasks.size() - 1];
 		new_task.myEntry.msgId.isGPUDirect = 0;
+		if(force_gpu_direct)
+			new_task.myEntry.msgId.isGPUDirect = 1;
 		new_task.execTime = 0;
 		new_task.event_id = TRACER_COLL_EVT;
 		new_task.myEntry.msgId.size = sizeSent/group.members.size();
@@ -946,6 +952,8 @@ callbackCollectiveEnd(OTF2_LocationRef locationID,
 		ld->tasks.push_back(Task());
 		Task &new_task = ld->tasks[ld->tasks.size() - 1];
 		new_task.myEntry.msgId.isGPUDirect = 0;	
+		if(force_gpu_direct)
+			new_task.myEntry.msgId.isGPUDirect = 1;
 		new_task.execTime = 0;
 		new_task.event_id = TRACER_COLL_EVT;
 		new_task.myEntry.msgId.pe = group.members[0];
@@ -975,6 +983,8 @@ callbackCollectiveEnd(OTF2_LocationRef locationID,
 		ld->tasks.push_back(Task());
 		Task &new_task = ld->tasks[ld->tasks.size() - 1];
 		new_task.myEntry.msgId.isGPUDirect = 0;
+		if(force_gpu_direct)
+			new_task.myEntry.msgId.isGPUDirect = 1;
 		new_task.execTime = 0;
 		new_task.event_id = TRACER_COLL_EVT;
 		new_task.myEntry.msgId.size = sizeReceived/group.members.size();

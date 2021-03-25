@@ -795,7 +795,6 @@ void proc_finalize(
     time_rank[ns->my_pe_num * (ns->my_job + 1)].comp_time = ns->computation_t;
     time_rank[ns->my_pe_num * (ns->my_job + 1)].comm_time = commTime;
 
-
     if(lpid_to_pe(lp->gid) == 0)
         printf("Job[%d]PE[%d]: FINALIZE in %f seconds.\n", ns->my_job,
           ns->my_pe_num, ns_to_s(tw_now(lp)-ns->start_ts));
@@ -895,6 +894,36 @@ void proc_event_gpu(
       break;
     case GPU_SEND_DONE:
       handle_gpu_send_done_event(ns, b, m, lp);
+      break;
+    case COLL_BCAST_CPU_GPU:
+      handle_gpu_bcast_cpu_gpu_event(ns, b, m, lp);
+      break;
+    case COLL_BCAST_GPU_GPU:
+      handle_gpu_bcast_gpu_gpu_event(ns, b, m, lp);
+      break;
+    case COLL_REDUCTION_CPU_GPU:
+      handle_gpu_reduction_cpu_gpu_event(ns, b, m, lp);
+      break;
+    case COLL_REDUCTION_GPU_GPU:
+      handle_gpu_reduction_gpu_gpu_event(ns, b, m, lp);
+      break;
+    case COLL_A2A_CPU_GPU:
+      handle_gpu_a2a_cpu_gpu_event(ns, b, m, lp);
+      break;
+    case COLL_A2A_GPU_GPU:
+      handle_gpu_a2a_gpu_gpu_event(ns, b, m, lp);
+      break;
+    case COLL_A2A_SEND_DONE_GPU:
+      handle_gpu_a2a_send_done_event(ns, b, m, lp);
+      break;
+    case COLL_ALLGATHER_CPU_GPU:
+      handle_gpu_allgather_cpu_gpu_event(ns, b, m, lp);
+      break;
+    case COLL_ALLGATHER_GPU_GPU:
+      handle_gpu_allgather_gpu_gpu_event(ns, b, m, lp);
+      break;
+    case COLL_ALLGATHER_SEND_DONE_GPU:
+      handle_gpu_allgather_send_done_event(ns, b, m, lp);
       break;
     default:
       printf("\n Invalid message type %d event %lld ", 
